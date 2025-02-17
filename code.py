@@ -37,6 +37,17 @@ def load_sheet(client):
         st.error(f"Error al cargar la planilla: {str(e)}")
         return None
 
+def parse_hyperlink_formula(formula):
+    """
+    Dado una fórmula HYPERLINK del tipo:
+      =HYPERLINK("https://ejemplo.com", "Texto")
+    retorna una tupla (url, texto). Si no es una fórmula de hipervínculo, retorna (None, None).
+    """
+    match = re.match(r'=HYPERLINK\("([^"]+)"\s*,\s*"([^"]+)"\)', formula)
+    if match:
+        return match.group(1), match.group(2)
+    return None, None
+
 # ----------------------------
 # Inicio de la aplicación
 # ----------------------------
@@ -46,17 +57,16 @@ client = init_connection()
 if client:
     sheet = load_sheet(client)
     if sheet:
-        # Obtiene todos los datos de la hoja
+        # Se obtienen todos los datos para el filtrado (pero para la columna E se usará la celda con value_render_option=FORMULA)
         all_data = sheet.get_all_values()
         
         st.subheader("Búsqueda por columna AF")
         filter_text = st.text_input("Ingrese el texto de búsqueda para la columna AF:")
 
         if filter_text:
-            # Filtra las filas que tengan coincidencia en la columna AF (AF es la columna 32, índice 31)
+            # Filtra las filas que tengan coincidencia en la columna AF (columna AF es la 32, índice 31)
             matching_rows = []
             for idx, row in enumerate(all_data, start=1):
-                # Verifica que la fila tenga al menos 32 columnas
                 if len(row) >= 32 and filter_text.lower() in row[31].lower():
                     matching_rows.append((idx, row))
             
@@ -69,17 +79,28 @@ if client:
                 
                 st.markdown("---")
                 st.subheader("Vista previa de la columna E")
-                # Columna E es la columna 5 (índice 4)
-                if len(selected_row_data) >= 5:
-                    col_e_value = selected_row_data[4]
-                    # Si el valor de la columna E parece una URL, se muestra como hipervínculo
-                    if re.match(r'https?://', col_e_value):
-                        link_html = f'<a href="{col_e_value}" target="_blank">{col_e_value}</a>'
+                # Usamos la celda de la columna E (índice 5, ya que la numeración en Sheets es 1-indexada)
+                try:
+                    # Solicitamos la fórmula de la celda (si tiene HYPERLINK se verá)
+                    cell_e = sheet.cell(selected_row, 5, value_render_option="FORMULA")
+                    cell_e_value = cell_e.value if cell_e.value else ""
+                    
+                    # Si es una fórmula HYPERLINK, extraemos el URL y el texto
+                    if cell_e_value.startswith("=HYPERLINK"):
+                        url, text_link = parse_hyperlink_formula(cell_e_value)
+                        if url and text_link:
+                            link_html = f'<a href="{url}" target="_blank">{text_link}</a>'
+                            st.markdown(link_html, unsafe_allow_html=True)
+                        else:
+                            st.write("Formato de HYPERLINK no reconocido:", cell_e_value)
+                    # Si no es una fórmula, pero parece un URL, lo mostramos como enlace
+                    elif re.match(r'https?://', cell_e_value):
+                        link_html = f'<a href="{cell_e_value}" target="_blank">{cell_e_value}</a>'
                         st.markdown(link_html, unsafe_allow_html=True)
                     else:
-                        st.write(col_e_value)
-                else:
-                    st.write("La fila seleccionada no contiene datos en la columna E.")
+                        st.write(cell_e_value)
+                except Exception as e:
+                    st.error(f"Error al obtener el valor de la columna E: {e}")
                 
                 st.markdown("---")
                 st.subheader("Editar celda de la fila seleccionada")
@@ -88,7 +109,7 @@ if client:
                 # Selección de la columna a editar (por ejemplo: "DJ")
                 col_letter = st.text_input("Ingrese la letra de la columna a editar (ej: DJ):", value="DJ")
                 
-                # Intenta obtener el valor actual de la celda a editar
+                # Obtener el valor actual de la celda a editar (con valor renderizado normal)
                 cell_label = f"{col_letter}{selected_row}"
                 try:
                     current_value = sheet.acell(cell_label).value

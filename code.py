@@ -491,6 +491,7 @@ def main():
             "Generar Estrategia de Riego": ['Sí', 'No', 'Programado', 'No aplica']
         }
         
+# Replace the form section that's causing the error with this corrected version
         with st.form("update_form"):
             # Reorganización: Procesos en columna 1, Observaciones en columna 2
             col1, col2 = st.columns(2)
@@ -544,6 +545,7 @@ def main():
                 # Área de observaciones en columna 2
                 with col2:
                     obs_label = f"Observaciones - {step['step_label'].split(' ')[1] if len(step['step_label'].split(' ')) > 1 else step['step_label']}"
+                    # Corregido: Altura mínima de 68px para text_area
                     step_obs_value = st.text_area(obs_label, value=default_obs, height=68, key=f"obs_{i}")
                     step_obs_values.append(step_obs_value)
             

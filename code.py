@@ -445,9 +445,9 @@ def main():
                     options_for_select = [display_val] + options_for_select
                 default_index = options_for_select.index(display_val)
                 step1_value = st.selectbox(step1["step_label"], options=options_for_select, index=default_index, key="step_0")
-                # Observaciones para Paso 1
+                # Observaciones para Paso 1 (altura ajustada a 68px)
                 default_obs = fila_datos[step1["obs_col"] - 1] if len(fila_datos) > step1["obs_col"] - 1 else ""
-                step1_obs_value = st.text_area("Observaciones - Ingreso a Planilla", value=default_obs, height=40, key="obs_0")
+                step1_obs_value = st.text_area("Observaciones - Ingreso a Planilla", value=default_obs, height=68, key="obs_0")
                 
                 # 3. Correo Presentación y Solicitud Información
                 step2 = {"step_label": "Correo Presentación y Solicitud Información", "step_col": 7, "obs_col": 8, "date_col": 9}
@@ -458,9 +458,9 @@ def main():
                     options_for_select = [display_val] + options_for_select
                 default_index = options_for_select.index(display_val)
                 step2_value = st.selectbox(step2["step_label"], options=options_for_select, index=default_index, key="step_1")
-                # Observaciones para Paso 2
+                # Observaciones para Paso 2 (altura ajustada a 68px)
                 default_obs = fila_datos[step2["obs_col"] - 1] if len(fila_datos) > step2["obs_col"] - 1 else ""
-                step2_obs_value = st.text_area("Observaciones - Correo Presentación", value=default_obs, height=40, key="obs_1")
+                step2_obs_value = st.text_area("Observaciones - Correo Presentación", value=default_obs, height=68, key="obs_1")
                 
                 # 4. Agregar Puntos Críticos
                 step3 = {"step_label": "Agregar Puntos Críticos", "step_col": 10, "obs_col": 11, "date_col": 12}
@@ -471,9 +471,9 @@ def main():
                     options_for_select = [display_val] + options_for_select
                 default_index = options_for_select.index(display_val)
                 step3_value = st.selectbox(step3["step_label"], options=options_for_select, index=default_index, key="step_2")
-                # Observaciones para Paso 3
+                # Observaciones para Paso 3 (altura ajustada a 68px)
                 default_obs = fila_datos[step3["obs_col"] - 1] if len(fila_datos) > step3["obs_col"] - 1 else ""
-                step3_obs_value = st.text_area("Observaciones - Puntos Críticos", value=default_obs, height=40, key="obs_2")
+                step3_obs_value = st.text_area("Observaciones - Puntos Críticos", value=default_obs, height=68, key="obs_2")
             
             # ----- Columna 2 -----
             with col2:
@@ -486,9 +486,9 @@ def main():
                     options_for_select = [display_val] + options_for_select
                 default_index = options_for_select.index(display_val)
                 step4_value = st.selectbox(step4["step_label"], options=options_for_select, index=default_index, key="step_3")
-                # Observaciones para Paso 4
+                # Observaciones para Paso 4 (altura ajustada a 68px)
                 default_obs = fila_datos[step4["obs_col"] - 1] if len(fila_datos) > step4["obs_col"] - 1 else ""
-                step4_obs_value = st.text_area("Observaciones - Capacitación Plataforma", value=default_obs, height=40, key="obs_3")
+                step4_obs_value = st.text_area("Observaciones - Capacitación Plataforma", value=default_obs, height=68, key="obs_3")
                 
                 # 6. Generar Documento Power BI
                 step5 = {"step_label": "Generar Documento Power BI", "step_col": 16, "obs_col": 17, "date_col": 18}
@@ -499,9 +499,9 @@ def main():
                     options_for_select = [display_val] + options_for_select
                 default_index = options_for_select.index(display_val)
                 step5_value = st.selectbox(step5["step_label"], options=options_for_select, index=default_index, key="step_4")
-                # Observaciones para Paso 5
+                # Observaciones para Paso 5 (altura ajustada a 68px)
                 default_obs = fila_datos[step5["obs_col"] - 1] if len(fila_datos) > step5["obs_col"] - 1 else ""
-                step5_obs_value = st.text_area("Observaciones - Documento Power BI", value=default_obs, height=40, key="obs_4")
+                step5_obs_value = st.text_area("Observaciones - Documento Power BI", value=default_obs, height=68, key="obs_4")
                 
                 # 7. Generar Capacitación Power BI
                 step6 = {"step_label": "Generar Capacitación Power BI", "step_col": 19, "obs_col": 20, "date_col": 21}
@@ -512,9 +512,9 @@ def main():
                     options_for_select = [display_val] + options_for_select
                 default_index = options_for_select.index(display_val)
                 step6_value = st.selectbox(step6["step_label"], options=options_for_select, index=default_index, key="step_5")
-                # Observaciones para Paso 6
+                # Observaciones para Paso 6 (altura ajustada a 68px)
                 default_obs = fila_datos[step6["obs_col"] - 1] if len(fila_datos) > step6["obs_col"] - 1 else ""
-                step6_obs_value = st.text_area("Observaciones - Capacitación Power BI", value=default_obs, height=40, key="obs_5")
+                step6_obs_value = st.text_area("Observaciones - Capacitación Power BI", value=default_obs, height=68, key="obs_5")
                 
                 # 8. Generar Estrategia de Riego
                 step7 = {"step_label": "Generar Estrategia de Riego", "step_col": 22, "obs_col": 23, "date_col": 24}
@@ -525,9 +525,9 @@ def main():
                     options_for_select = [display_val] + options_for_select
                 default_index = options_for_select.index(display_val)
                 step7_value = st.selectbox(step7["step_label"], options=options_for_select, index=default_index, key="step_6")
-                # Observaciones para Paso 7
+                # Observaciones para Paso 7 (altura ajustada a 68px)
                 default_obs = fila_datos[step7["obs_col"] - 1] if len(fila_datos) > step7["obs_col"] - 1 else ""
-                step7_obs_value = st.text_area("Observaciones - Estrategia de Riego", value=default_obs, height=40, key="obs_6")
+                step7_obs_value = st.text_area("Observaciones - Estrategia de Riego", value=default_obs, height=68, key="obs_6")
             
             # Campo de Comentarios (a pantalla completa)
             comentarios_default = fila_datos[24] if len(fila_datos) >= 25 else ""
@@ -557,5 +557,3 @@ def main():
                     st.session_state.update_successful = True
                     st.rerun()
 
-if __name__ == "__main__":
-    main()

@@ -86,9 +86,12 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
         date_col = step["date_col"]
         obs_col = step.get("obs_col")
         for row in rows:
+            # Actualizar valor del paso
             cells_to_update.append(Cell(row, step_col, update_value))
+            # Actualizar observación del paso (si corresponde)
             if obs_col is not None:
                 cells_to_update.append(Cell(row, obs_col, step["obs_value"]))
+            # Actualizar fecha si hay avance
             if update_value in ['Sí', 'Programado', 'Sí (DropControl)', 'Sí (CDTEC IF)']:
                 cells_to_update.append(Cell(row, date_col, now))
             else:
@@ -107,6 +110,7 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
     try:
         sheet.update_cells(cells_to_update, value_input_option='USER_ENTERED')
         st.success("✅ Cambios guardados.")
+        # Invalidar caché para forzar la recarga de datos
         st.cache_data.clear()
         return True
     except Exception as e:
@@ -117,13 +121,13 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
 # Obtener color según estado
 def get_state_color(state):
     colors = {
-        'Sí': '#4CAF50',  
-        'No': '#F44336',  
-        'Programado': '#FFC107',  
-        'No aplica': '#9E9E9E',  
-        'Sí (DropControl)': '#2196F3',  
-        'Sí (CDTEC IF)': '#673AB7',  
-        'Vacío': '#E0E0E0',  
+        'Sí': '#4CAF50',  # Verde
+        'No': '#F44336',  # Rojo
+        'Programado': '#FFC107',  # Amarillo
+        'No aplica': '#9E9E9E',  # Gris
+        'Sí (DropControl)': '#2196F3',  # Azul
+        'Sí (CDTEC IF)': '#673AB7',  # Morado
+        'Vacío': '#E0E0E0',  # Gris claro
     }
     return colors.get(state, '#E0E0E0')
 
@@ -153,9 +157,11 @@ def main():
     """
     components.html(html_button, height=50)
 
+    # Inicializar estado de actualizaciones
     if "update_successful" not in st.session_state:
         st.session_state.update_successful = False
 
+    # Cargar datos - siempre cargar datos frescos si hubo una actualización exitosa
     if "data" not in st.session_state or st.session_state.update_successful:
         st.session_state.data = get_data()
         st.session_state.update_successful = False
@@ -164,13 +170,16 @@ def main():
     if data is None:
         st.stop()
 
+    # Extraer cuentas únicas
     unique_cuentas = sorted(set(row[0] for row in data[1:]))
 
     st.header("Buscar Registro")
     
+    # Selección de Cuenta
     cuentas_options = ["Seleccione una cuenta"] + unique_cuentas
     selected_cuenta = st.selectbox("Cuenta", cuentas_options, key="cuenta", on_change=reset_search)
     
+    # Selección múltiple de Sectores
     if selected_cuenta != "Seleccione una cuenta":
         sectores_para_cuenta = [row[1] for row in data[1:] if row[0] == selected_cuenta]
         unique_sectores = sorted(set(sectores_para_cuenta))
@@ -225,10 +234,11 @@ def main():
     if "rows" not in st.session_state:
         st.session_state.rows = None
 
+    # Mostrar tabla dinámica con colores (Estado Actual)
     if st.session_state.rows is not None:
         st.header("Estado Actual")
         
-        # Construcción de la tabla "Estado Actual"
+        # Preparar datos para la tabla (se muestran algunas columnas relevantes)
         table_data = []
         headers = ["Cuenta", "Sector", "Consultoría", 
                    "Ingreso a Planilla", "Correo Presentación", 
@@ -237,19 +247,19 @@ def main():
                    "Estrategia de Riego", "Última Actualización"]
         
         for row_index in st.session_state.rows:
-            row = data[row_index - 1]
+            row = data[row_index - 1]  # Ajuste de índice
             row_data = [
-                row[0],
-                row[1],
-                row[2],
-                row[3],
-                row[6],
-                row[9],
-                row[12],
-                row[15],
-                row[18],
-                row[21],
-                row[25] if len(row) > 25 else "",
+                row[0],  # Cuenta
+                row[1],  # Sector
+                row[2],  # Consultoría
+                row[3],  # Ingreso a Planilla
+                row[6],  # Correo Presentación
+                row[9],  # Puntos Críticos
+                row[12], # Capacitación Plataforma
+                row[15], # Documento Power BI
+                row[18], # Capacitación Power BI
+                row[21], # Estrategia de Riego
+                row[25] if len(row) > 25 else "",  # Última Actualización
             ]
             table_data.append(row_data)
         
@@ -262,6 +272,7 @@ def main():
             estado_height = 500
         
         df = pd.DataFrame(table_data, columns=headers)
+        
         html_table = f"""
         <style>
         .status-table {{
@@ -331,8 +342,9 @@ def main():
         </div>
         """
         st.components.v1.html(html_table, height=estado_height)
-
-        # Si se selecciona un único sector, se puede agregar la tabla de observaciones (formato similar a "Comentarios por Sector")
+        
+        # Bloque de Observaciones:
+        # Se muestra solo si se ha seleccionado un único sector de riego
         if len(st.session_state.selected_sectores) == 1:
             fila_datos = data[st.session_state.rows[0] - 1]
             process_obs = [
@@ -372,6 +384,7 @@ def main():
             html_obs_table += "</table>"
             st.components.v1.html(html_obs_table, height=220)
 
+        # Sección: Tabla de Comentarios por Sector
         st.subheader("Comentarios por Sector")
         comentarios_data = {}
         sectores_encontrados = []
@@ -437,9 +450,17 @@ def main():
         fila_index = st.session_state.rows[0] - 1
         fila_datos = data[fila_index]
         
-        # Bloque de actualización reorganizado:
-        # En la columna 1 se muestran los procesos (selectboxes)
-        # En la columna 2 se muestran las observaciones (text_area)
+        # Opciones para cada paso
+        step_options = {
+            "Ingreso a Planilla Clientes Nuevos": ['Sí', 'No'],
+            "Correo Presentación y Solicitud Información": ['Sí', 'No', 'Programado'],
+            "Agregar Puntos Críticos": ['Sí', 'No'],
+            "Generar Capacitación Plataforma": ['Sí (DropControl)', 'Sí (CDTEC IF)', 'No', 'Programado'],
+            "Generar Documento Power BI": ['Sí', 'No', 'Programado', 'No aplica'],
+            "Generar Capacitación Power BI": ['Sí', 'No', 'Programado', 'No aplica'],
+            "Generar Estrategia de Riego": ['Sí', 'No', 'Programado', 'No aplica']
+        }
+        
         with st.form("update_form"):
             col1, col2 = st.columns(2)
             with col1:

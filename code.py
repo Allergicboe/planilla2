@@ -236,7 +236,7 @@ def main():
 
     # Crear pestañas para "Estado Actual" y "Actualizar Registro"
     if st.session_state.rows is not None:
-        tab1, tab2 = st.tabs(["Estado Actual", "Actualizar Registro"])
+        tab1, tab2 = st.tabs(["📊 Estado Actual", "📝 Actualizar Registro"])
         
         with tab1:
             st.header("Procesos")

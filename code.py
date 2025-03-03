@@ -344,6 +344,19 @@ def main():
         st.components.v1.html(html_table, height=estado_height)
     # Tabla de observaciones (sin título)
         observaciones_data = []
+        pasos_obs = [
+            {"nombre": "Sector", "col": 1},  # Sector no es una observación pero se muestra como primera columna
+            {"nombre": "Ingreso a Planilla", "col": 4},
+            {"nombre": "Correo Presentación", "col": 7},
+            {"nombre": "Puntos Críticos", "col": 10},
+            {"nombre": "Capacitación Plataforma", "col": 13},
+            {"nombre": "Documento Power BI", "col": 16},
+            {"nombre": "Capacitación Power BI", "col": 19},
+            {"nombre": "Estrategia de Riego", "col": 22}
+        ]
+
+# Definir los encabezados para la tabla de observaciones
+observaciones_headers = ["Sector"]
         for paso in pasos_obs:
             observaciones_headers.append(paso["nombre"])
         

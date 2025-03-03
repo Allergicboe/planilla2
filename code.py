@@ -239,7 +239,7 @@ def main():
         tab1, tab2 = st.tabs(["Estado Actual", "Actualizar Registro"])
         
         with tab1:
-            st.header("Estado Actual")
+            st.header("Procesos")
             
             # Preparar datos para la tabla (se muestran algunas columnas relevantes)
             table_data = []
@@ -347,7 +347,7 @@ def main():
             st.components.v1.html(html_table, height=estado_height)
 
             # Sección: Observaciones de Procesos
-            st.subheader("Observaciones de Procesos")
+            st.subheader("Observaciones")
             if len(st.session_state.selected_sectores) != 1:
                 st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
             else:

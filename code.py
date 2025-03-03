@@ -72,13 +72,13 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
     now = get_chile_timestamp()
     cells_to_update = []
 
-    # Actualizar Consultoría
+    # Actualizar Consultoría (columna 3)
     consultoria_col = 3
     update_consultoria = "" if consultoria_value == "Vacío" else consultoria_value
     for row in rows:
         cells_to_update.append(Cell(row, consultoria_col, update_consultoria))
 
-    # Actualizar pasos (valor, observaciones y fecha)
+    # Actualizar cada proceso (valor, observación y fecha)
     for step in steps_updates:
         selected_option = step["value"]
         update_value = "" if selected_option == "Vacío" else selected_option
@@ -86,9 +86,9 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
         date_col = step["date_col"]
         obs_col = step.get("obs_col")
         for row in rows:
-            # Actualizar valor del paso
+            # Actualizar valor del proceso
             cells_to_update.append(Cell(row, step_col, update_value))
-            # Actualizar observación del paso (si corresponde)
+            # Actualizar observación del proceso (si corresponde)
             if obs_col is not None:
                 cells_to_update.append(Cell(row, obs_col, step["obs_value"]))
             # Actualizar fecha si hay avance
@@ -97,12 +97,12 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
             else:
                 cells_to_update.append(Cell(row, date_col, ''))
 
-    # Actualizar Comentarios (columna Y)
+    # Actualizar Comentarios generales (columna 25)
     comentarios_col = 25
     for row in rows:
         cells_to_update.append(Cell(row, comentarios_col, comentarios_value))
 
-    # Actualizar fecha de última modificación (columna Z)
+    # Actualizar fecha de última modificación (columna 26)
     ultima_actualizacion_col = 26
     for row in rows:
         cells_to_update.append(Cell(row, ultima_actualizacion_col, now))
@@ -121,21 +121,37 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
 # Obtener color según estado
 def get_state_color(state):
     colors = {
-        'Sí': '#4CAF50',  # Verde
-        'No': '#F44336',  # Rojo
+        'Sí': '#4CAF50',          # Verde
+        'No': '#F44336',          # Rojo
         'Programado': '#FFC107',  # Amarillo
-        'No aplica': '#9E9E9E',  # Gris
-        'Sí (DropControl)': '#2196F3',  # Azul
-        'Sí (CDTEC IF)': '#673AB7',  # Morado
-        'Vacío': '#E0E0E0',  # Gris claro
+        'No aplica': '#9E9E9E',   # Gris
+        'Sí (DropControl)': '#2196F3',   # Azul
+        'Sí (CDTEC IF)': '#673AB7',      # Morado
+        'Vacío': '#E0E0E0',       # Gris claro
     }
     return colors.get(state, '#E0E0E0')
 
-# Función principal
+# Definición centralizada de procesos.
+# Para agregar un nuevo proceso, añade un nuevo diccionario con:
+# - name: nombre del proceso (tal como se mostrará)
+# - step_col: columna donde se almacena el valor del proceso
+# - obs_col: columna donde se almacena la observación del proceso (si aplica)
+# - date_col: columna donde se almacena la fecha de actualización
+# - options: lista de opciones válidas para ese proceso
+processes = [
+    {"name": "Ingreso a Planilla Clientes Nuevos", "step_col": 4, "obs_col": 5, "date_col": 6, "options": ['Sí', 'No']},
+    {"name": "Correo Presentación y Solicitud Información", "step_col": 7, "obs_col": 8, "date_col": 9, "options": ['Sí', 'No', 'Programado']},
+    {"name": "Agregar Puntos Críticos", "step_col": 10, "obs_col": 11, "date_col": 12, "options": ['Sí', 'No']},
+    {"name": "Generar Capacitación Plataforma", "step_col": 13, "obs_col": 14, "date_col": 15, "options": ['Sí (DropControl)', 'Sí (CDTEC IF)', 'No', 'Programado']},
+    {"name": "Generar Documento Power BI", "step_col": 16, "obs_col": 17, "date_col": 18, "options": ['Sí', 'No', 'Programado', 'No aplica']},
+    {"name": "Generar Capacitación Power BI", "step_col": 19, "obs_col": 20, "date_col": 21, "options": ['Sí', 'No', 'Programado', 'No aplica']},
+    {"name": "Generar Estrategia de Riego", "step_col": 22, "obs_col": 23, "date_col": 24, "options": ['Sí', 'No', 'Programado', 'No aplica']}
+]
+
 def main():
     st.title("📌 Estado de Clientes")
     
-    # Botón para abrir planilla
+    # Botón para abrir la planilla de Google
     html_button = f"""
     <div style="text-align: left; margin-bottom: 10px;">
         <a href="{SPREADSHEET_URL}" target="_blank">
@@ -161,7 +177,7 @@ def main():
     if "update_successful" not in st.session_state:
         st.session_state.update_successful = False
 
-    # Cargar datos - siempre cargar datos frescos si hubo una actualización exitosa
+    # Cargar datos: se recargan si hubo una actualización exitosa
     if "data" not in st.session_state or st.session_state.update_successful:
         st.session_state.data = get_data()
         st.session_state.update_successful = False
@@ -209,6 +225,7 @@ def main():
     else:
         st.session_state.selected_sectores = []
 
+    # Botón para buscar el registro
     if st.button("Buscar Registro", type="primary", use_container_width=True):
         if selected_cuenta == "Seleccione una cuenta":
             st.error("❌ Seleccione una cuenta válida.")
@@ -234,36 +251,25 @@ def main():
     if "rows" not in st.session_state:
         st.session_state.rows = None
 
-    # Crear pestañas para "Estado Actual" y "Actualizar Registro"
+    # Pestañas para "Estado Actual" y "Actualizar Registro"
     if st.session_state.rows is not None:
         tab1, tab2 = st.tabs(["📊 Estado Actual", "📝 Actualizar Registro"])
         
         with tab1:
             st.header("Procesos")
-            
-            # Preparar datos para la tabla (se muestran algunas columnas relevantes)
+            # Construir encabezado de la tabla: Cuenta, Sector, Consultoría, cada proceso y Última Actualización
+            headers = ["Cuenta", "Sector", "Consultoría"] + [p["name"] for p in processes] + ["Última Actualización"]
             table_data = []
-            headers = ["Cuenta", "Sector", "Consultoría", 
-                       "Ingreso a Planilla", "Correo Presentación", 
-                       "Puntos Críticos", "Capacitación Plataforma", 
-                       "Documento Power BI", "Capacitación Power BI", 
-                       "Estrategia de Riego", "Última Actualización"]
-            
             for row_index in st.session_state.rows:
                 row = data[row_index - 1]  # Ajuste de índice
-                row_data = [
-                    row[0],  # Cuenta
-                    row[1],  # Sector
-                    row[2],  # Consultoría
-                    row[3],  # Ingreso a Planilla
-                    row[6],  # Correo Presentación
-                    row[9],  # Puntos Críticos
-                    row[12], # Capacitación Plataforma
-                    row[15], # Documento Power BI
-                    row[18], # Capacitación Power BI
-                    row[21], # Estrategia de Riego
-                    row[25] if len(row) > 25 else "",  # Última Actualización
-                ]
+                # Extraer valores de cuenta, sector y consultoría
+                row_data = [row[0], row[1], row[2]]
+                # Extraer el valor de cada proceso (usando la columna definida en processes)
+                for proc in processes:
+                    cell_val = row[proc["step_col"] - 1] if len(row) >= proc["step_col"] else ""
+                    row_data.append(cell_val)
+                # Última Actualización (columna 25)
+                row_data.append(row[25] if len(row) > 25 else "")
                 table_data.append(row_data)
             
             n_rows = len(table_data)
@@ -276,6 +282,7 @@ def main():
             
             df = pd.DataFrame(table_data, columns=headers)
             
+            # Construcción de la tabla HTML con estilo
             html_table = f"""
             <style>
             .status-table {{
@@ -324,8 +331,10 @@ def main():
             for _, row in df.iterrows():
                 html_table += "<tr>"
                 for i, cell in enumerate(row):
+                    # Las dos primeras columnas se muestran sin formato especial
                     if i <= 1:
                         html_table += f"<td>{cell}</td>"
+                    # Última columna (fecha)
                     elif i == len(row) - 1:
                         html_table += f'<td><div class="date-cell">{cell}</div></td>'
                     else:
@@ -346,186 +355,79 @@ def main():
             """
             st.components.v1.html(html_table, height=estado_height)
 
-            # Sección: Observaciones de Procesos
+            # Sección de Observaciones
             st.subheader("Observaciones")
-            # Recalcular los sectores asignados a la cuenta
+            # Recalcular sectores asignados a la cuenta
             sectores_para_cuenta = [row[1] for row in data[1:] if row[0] == selected_cuenta]
             unique_sectores_cuenta = sorted(set(sectores_para_cuenta))
-            # Se muestran las observaciones si se seleccionó un único sector o si la cuenta tiene asignado solo un sector
+            # Se muestran las observaciones si se selecciona un único sector o la cuenta tiene asignado solo uno
             if (len(st.session_state.selected_sectores) != 1) and (len(unique_sectores_cuenta) != 1):
                 st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
             else:
                 fila_datos = data[st.session_state.rows[0] - 1]
-                # Comentarios generales tomados de la casilla (columna 25, índice 24)
+                # Comentarios generales (columna 25, índice 24)
                 general_comment = fila_datos[24] if len(fila_datos) > 24 and fila_datos[24].strip() != "" else "Vacío"
                 with st.expander("Comentarios Generales", expanded=True):
                     st.write(general_comment)
                 
-                process_obs = [
-                    ("Ingreso a Planilla Clientes Nuevos", fila_datos[4] if len(fila_datos) > 4 and fila_datos[4].strip() != "" else "Vacío"),
-                    ("Correo Presentación y Solicitud Información", fila_datos[7] if len(fila_datos) > 7 and fila_datos[7].strip() != "" else "Vacío"),
-                    ("Agregar Puntos Críticos", fila_datos[10] if len(fila_datos) > 10 and fila_datos[10].strip() != "" else "Vacío"),
-                    ("Generar Capacitación Plataforma", fila_datos[13] if len(fila_datos) > 13 and fila_datos[13].strip() != "" else "Vacío"),
-                    ("Generar Documento Power BI", fila_datos[16] if len(fila_datos) > 16 and fila_datos[16].strip() != "" else "Vacío"),
-                    ("Generar Capacitación Power BI", fila_datos[19] if len(fila_datos) > 19 and fila_datos[19].strip() != "" else "Vacío"),
-                    ("Generar Estrategia de Riego", fila_datos[22] if len(fila_datos) > 22 and fila_datos[22].strip() != "" else "Vacío"),
-                ]
-                for process, obs in process_obs:
-                    with st.expander(process, expanded=True):
-                        st.write(obs)
+                for proc in processes:
+                    obs_index = proc["obs_col"] - 1
+                    obs_value = fila_datos[obs_index] if len(fila_datos) > obs_index and fila_datos[obs_index].strip() != "" else "Vacío"
+                    with st.expander(proc["name"], expanded=True):
+                        st.write(obs_value)
         
         with tab2:
             st.header("Actualizar Registro")
             fila_index = st.session_state.rows[0] - 1
             fila_datos = data[fila_index]
             
-            # Opciones para cada paso
-            step_options = {
-                "Ingreso a Planilla Clientes Nuevos": ['Sí', 'No'],
-                "Correo Presentación y Solicitud Información": ['Sí', 'No', 'Programado'],
-                "Agregar Puntos Críticos": ['Sí', 'No'],
-                "Generar Capacitación Plataforma": ['Sí (DropControl)', 'Sí (CDTEC IF)', 'No', 'Programado'],
-                "Generar Documento Power BI": ['Sí', 'No', 'Programado', 'No aplica'],
-                "Generar Capacitación Power BI": ['Sí', 'No', 'Programado', 'No aplica'],
-                "Generar Estrategia de Riego": ['Sí', 'No', 'Programado', 'No aplica']
-            }
+            # Campo de Consultoría (columna 3)
+            consultoria_default = fila_datos[2] if len(fila_datos) >= 3 else ""
+            display_consultoria = consultoria_default.strip() if consultoria_default and consultoria_default.strip() != "" else "Vacío"
+            consultoria_options = ["Sí", "No"]
+            if display_consultoria not in consultoria_options:
+                consultoria_options = [display_consultoria] + consultoria_options
+            try:
+                consultoria_index = consultoria_options.index(display_consultoria)
+            except ValueError:
+                consultoria_index = 0
+            consultoria_value = st.selectbox("Consultoría", options=consultoria_options, index=consultoria_index, key="consultoria_update")
             
-            with st.form("update_form"):
-                col1, col2 = st.columns(2)
+            # Campos dinámicos para cada proceso
+            process_values = {}
+            process_obs_values = {}
+            for i, proc in enumerate(processes):
+                default_val = fila_datos[proc["step_col"] - 1] if len(fila_datos) >= proc["step_col"] else ""
+                display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
+                options_for_select = proc["options"].copy()
+                if display_val not in options_for_select:
+                    options_for_select = [display_val] + options_for_select
+                default_index = options_for_select.index(display_val)
+                process_values[proc["name"]] = st.selectbox(proc["name"], options=options_for_select, index=default_index, key=f"process_{i}_update")
                 
-                # Columna 1: Procesos (selectboxes)
-                with col1:
-                    # Consultoría (sin observaciones)
-                    consultoria_default = fila_datos[2] if len(fila_datos) >= 3 else ""
-                    display_consultoria = consultoria_default.strip() if consultoria_default and consultoria_default.strip() != "" else "Vacío"
-                    consultoria_options = ["Sí", "No"]
-                    if display_consultoria not in consultoria_options:
-                        consultoria_options = [display_consultoria] + consultoria_options
-                    try:
-                        consultoria_index = consultoria_options.index(display_consultoria)
-                    except ValueError:
-                        consultoria_index = 0
-                    consultoria_value = st.selectbox("Consultoría", options=consultoria_options, index=consultoria_index, key="consultoria_update")
-                    
-                    # Proceso 1: Ingreso a Planilla Clientes Nuevos
-                    step1 = {"step_label": "Ingreso a Planilla Clientes Nuevos", "step_col": 4, "obs_col": 5, "date_col": 6}
-                    default_val = fila_datos[step1["step_col"] - 1] if len(fila_datos) > step1["step_col"] - 1 else ""
-                    display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-                    options_for_select = step_options[step1["step_label"]].copy()
-                    if display_val not in options_for_select:
-                        options_for_select = [display_val] + options_for_select
-                    default_index = options_for_select.index(display_val)
-                    step1_value = st.selectbox(step1["step_label"], options=options_for_select, index=default_index, key="step_0_update")
-                    
-                    # Proceso 2: Correo Presentación y Solicitud Información
-                    step2 = {"step_label": "Correo Presentación y Solicitud Información", "step_col": 7, "obs_col": 8, "date_col": 9}
-                    default_val = fila_datos[step2["step_col"] - 1] if len(fila_datos) > step2["step_col"] - 1 else ""
-                    display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-                    options_for_select = step_options[step2["step_label"]].copy()
-                    if display_val not in options_for_select:
-                        options_for_select = [display_val] + options_for_select
-                    default_index = options_for_select.index(display_val)
-                    step2_value = st.selectbox(step2["step_label"], options=options_for_select, index=default_index, key="step_1_update")
-                    
-                    # Proceso 3: Agregar Puntos Críticos
-                    step3 = {"step_label": "Agregar Puntos Críticos", "step_col": 10, "obs_col": 11, "date_col": 12}
-                    default_val = fila_datos[step3["step_col"] - 1] if len(fila_datos) > step3["step_col"] - 1 else ""
-                    display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-                    options_for_select = step_options[step3["step_label"]].copy()
-                    if display_val not in options_for_select:
-                        options_for_select = [display_val] + options_for_select
-                    default_index = options_for_select.index(display_val)
-                    step3_value = st.selectbox(step3["step_label"], options=options_for_select, index=default_index, key="step_2_update")
-                    
-                    # Proceso 4: Generar Capacitación Plataforma
-                    step4 = {"step_label": "Generar Capacitación Plataforma", "step_col": 13, "obs_col": 14, "date_col": 15}
-                    default_val = fila_datos[step4["step_col"] - 1] if len(fila_datos) > step4["step_col"] - 1 else ""
-                    display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-                    options_for_select = step_options[step4["step_label"]].copy()
-                    if display_val not in options_for_select:
-                        options_for_select = [display_val] + options_for_select
-                    default_index = options_for_select.index(display_val)
-                    step4_value = st.selectbox(step4["step_label"], options=options_for_select, index=default_index, key="step_3_update")
-                    
-                    # Proceso 5: Generar Documento Power BI
-                    step5 = {"step_label": "Generar Documento Power BI", "step_col": 16, "obs_col": 17, "date_col": 18}
-                    default_val = fila_datos[step5["step_col"] - 1] if len(fila_datos) > step5["step_col"] - 1 else ""
-                    display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-                    options_for_select = step_options[step5["step_label"]].copy()
-                    if display_val not in options_for_select:
-                        options_for_select = [display_val] + options_for_select
-                    default_index = options_for_select.index(display_val)
-                    step5_value = st.selectbox(step5["step_label"], options=options_for_select, index=default_index, key="step_4_update")
-                    
-                    # Proceso 6: Generar Capacitación Power BI
-                    step6 = {"step_label": "Generar Capacitación Power BI", "step_col": 19, "obs_col": 20, "date_col": 21}
-                    default_val = fila_datos[step6["step_col"] - 1] if len(fila_datos) > step6["step_col"] - 1 else ""
-                    display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-                    options_for_select = step_options[step6["step_label"]].copy()
-                    if display_val not in options_for_select:
-                        options_for_select = [display_val] + options_for_select
-                    default_index = options_for_select.index(display_val)
-                    step6_value = st.selectbox(step6["step_label"], options=options_for_select, index=default_index, key="step_5_update")
-                    
-                    # Proceso 7: Generar Estrategia de Riego
-                    step7 = {"step_label": "Generar Estrategia de Riego", "step_col": 22, "obs_col": 23, "date_col": 24}
-                    default_val = fila_datos[step7["step_col"] - 1] if len(fila_datos) > step7["step_col"] - 1 else ""
-                    display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-                    options_for_select = step_options[step7["step_label"]].copy()
-                    if display_val not in options_for_select:
-                        options_for_select = [display_val] + options_for_select
-                    default_index = options_for_select.index(display_val)
-                    step7_value = st.selectbox(step7["step_label"], options=options_for_select, index=default_index, key="step_6_update")
-                
-                # Columna 2: Campos de observaciones y "Comentarios generales"
-                with col2:
-                    default_obs = fila_datos[step1["obs_col"] - 1] if len(fila_datos) > step1["obs_col"] - 1 else ""
-                    step1_obs_value = st.text_area("Observaciones - Ingreso a Planilla", value=default_obs, height=68, key="obs_0_update")
-                    
-                    default_obs = fila_datos[step2["obs_col"] - 1] if len(fila_datos) > step2["obs_col"] - 1 else ""
-                    step2_obs_value = st.text_area("Observaciones - Correo Presentación", value=default_obs, height=68, key="obs_1_update")
-                    
-                    default_obs = fila_datos[step3["obs_col"] - 1] if len(fila_datos) > step3["obs_col"] - 1 else ""
-                    step3_obs_value = st.text_area("Observaciones - Puntos Críticos", value=default_obs, height=68, key="obs_2_update")
-                    
-                    default_obs = fila_datos[step4["obs_col"] - 1] if len(fila_datos) > step4["obs_col"] - 1 else ""
-                    step4_obs_value = st.text_area("Observaciones - Capacitación Plataforma", value=default_obs, height=68, key="obs_3_update")
-                    
-                    default_obs = fila_datos[step5["obs_col"] - 1] if len(fila_datos) > step5["obs_col"] - 1 else ""
-                    step5_obs_value = st.text_area("Observaciones - Documento Power BI", value=default_obs, height=68, key="obs_4_update")
-                    
-                    default_obs = fila_datos[step6["obs_col"] - 1] if len(fila_datos) > step6["obs_col"] - 1 else ""
-                    step6_obs_value = st.text_area("Observaciones - Capacitación Power BI", value=default_obs, height=68, key="obs_5_update")
-                    
-                    default_obs = fila_datos[step7["obs_col"] - 1] if len(fila_datos) > step7["obs_col"] - 1 else ""
-                    step7_obs_value = st.text_area("Observaciones - Estrategia de Riego", value=default_obs, height=68, key="obs_6_update")
-                    
-                    # Comentarios generales
-                    comentarios_generales = st.text_area("Comentarios generales", value="", height=68, key="comentarios_generales_update")
-                
-                submitted = st.form_submit_button("Guardar Cambios", type="primary", use_container_width=True)
-                if submitted:
-                    steps_updates = [
-                        {"step_label": step1["step_label"], "step_col": step1["step_col"], "obs_col": step1["obs_col"], "date_col": step1["date_col"],
-                         "value": step1_value, "obs_value": step1_obs_value},
-                        {"step_label": step2["step_label"], "step_col": step2["step_col"], "obs_col": step2["obs_col"], "date_col": step2["date_col"],
-                         "value": step2_value, "obs_value": step2_obs_value},
-                        {"step_label": step3["step_label"], "step_col": step3["step_col"], "obs_col": step3["obs_col"], "date_col": step3["date_col"],
-                         "value": step3_value, "obs_value": step3_obs_value},
-                        {"step_label": step4["step_label"], "step_col": step4["step_col"], "obs_col": step4["obs_col"], "date_col": step4["date_col"],
-                         "value": step4_value, "obs_value": step4_obs_value},
-                        {"step_label": step5["step_label"], "step_col": step5["step_col"], "obs_col": step5["obs_col"], "date_col": step5["date_col"],
-                         "value": step5_value, "obs_value": step5_obs_value},
-                        {"step_label": step6["step_label"], "step_col": step6["step_col"], "obs_col": step6["obs_col"], "date_col": step6["date_col"],
-                         "value": step6_value, "obs_value": step6_obs_value},
-                        {"step_label": step7["step_label"], "step_col": step7["step_col"], "obs_col": step7["obs_col"], "date_col": step7["date_col"],
-                         "value": step7_value, "obs_value": step7_obs_value},
-                    ]
-                    comentarios_generales_value = st.session_state.get("comentarios_generales_update", "")
-                    success = update_steps(st.session_state.rows, steps_updates, consultoria_value, comentarios_generales_value)
-                    if success:
-                        st.session_state.update_successful = True
-                        st.rerun()
+                default_obs = fila_datos[proc["obs_col"] - 1] if len(fila_datos) >= proc["obs_col"] else ""
+                process_obs_values[proc["name"]] = st.text_area(f"Observaciones - {proc['name']}", value=default_obs, height=68, key=f"obs_{i}_update")
+            
+            # Comentarios generales
+            comentarios_generales = st.text_area("Comentarios generales", value="", height=68, key="comentarios_generales_update")
+            
+            submitted = st.form_submit_button("Guardar Cambios", type="primary", use_container_width=True)
+            if submitted:
+                steps_updates = []
+                for proc in processes:
+                    steps_updates.append({
+                        "step_label": proc["name"],
+                        "step_col": proc["step_col"],
+                        "obs_col": proc["obs_col"],
+                        "date_col": proc["date_col"],
+                        "value": process_values[proc["name"]],
+                        "obs_value": process_obs_values[proc["name"]]
+                    })
+                comentarios_generales_value = st.session_state.get("comentarios_generales_update", "")
+                success = update_steps(st.session_state.rows, steps_updates, consultoria_value, comentarios_generales_value)
+                if success:
+                    st.session_state.update_successful = True
+                    st.rerun()
 
 if __name__ == "__main__":
     main()

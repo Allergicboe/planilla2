@@ -128,22 +128,6 @@ def get_state_color(state):
     return colors.get(state, '#E0E0E0')
 
 # Definición centralizada de procesos.
-# Cada proceso ocupa 3 columnas: valor, observación y fecha.
-# La estructura de la hoja es:
-#   1. Cuenta  
-#   2. Sector  
-#   3. Consultoría  
-#   4-6. Proceso Nuevo 1  
-#   7-9. Proceso Nuevo 2  
-#   10-12. Ingreso a Planilla Clientes Nuevos  
-#   13-15. Correo Presentación y Solicitud Información  
-#   16-18. Agregar Puntos Críticos  
-#   19-21. Generar Capacitación Plataforma  
-#   22-24. Generar Documento Power BI  
-#   25-27. Generar Capacitación Power BI  
-#   28-30. Generar Estrategia de Riego  
-#   31. Comentarios generales  
-#   32. Última Actualización
 processes = [
     {"name": "Proceso Nuevo 1", "step_col": 4, "obs_col": 5, "date_col": 6, "options": ['Sí', 'No']},
     {"name": "Proceso Nuevo 2", "step_col": 7, "obs_col": 8, "date_col": 9, "options": ['Sí', 'No', 'Programado']},
@@ -357,12 +341,28 @@ def main():
             st.components.v1.html(html_table, height=estado_height)
 
             st.subheader("Observaciones")
-            sectores_para_cuenta = [row[1] for row in data[1:] if row[0] == selected_cuenta]
-            unique_sectores_cuenta = sorted(set(sectores_para_cuenta))
-            if (len(st.session_state.selected_sectores) != 1) and (len(unique_sectores_cuenta) != 1):
-                st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
+            # Extraer los sectores presentes en las filas seleccionadas
+            sectores_observ = []
+            for r in st.session_state.rows:
+                if len(data[r-1]) > 1:
+                    sectores_observ.append(data[r-1][1])
+            sectores_observ = sorted(set(sectores_observ))
+            if len(sectores_observ) > 1:
+                chosen_sector = st.selectbox("Seleccione el sector para ver observaciones:", sectores_observ, key="observ_sector_select")
+                chosen_row = None
+                for r in st.session_state.rows:
+                    if data[r-1][1] == chosen_sector:
+                        chosen_row = r
+                        break
+                if chosen_row is None:
+                    st.error("No se encontró la fila para el sector seleccionado.")
+                    fila_datos = None
+                else:
+                    fila_datos = data[chosen_row - 1]
             else:
                 fila_datos = data[st.session_state.rows[0] - 1]
+            
+            if fila_datos:
                 general_comment = fila_datos[30] if len(fila_datos) > 30 and fila_datos[30].strip() != "" else "Vacío"
                 with st.expander("Comentarios Generales", expanded=True):
                     st.write(general_comment)

@@ -344,7 +344,6 @@ def main():
         st.components.v1.html(html_table, height=estado_height)
         
         # Bloque de Observaciones:
-        st.subheader("Observaciones de Procesos")
         # Se muestra solo si se ha seleccionado un único sector de riego
         if len(st.session_state.selected_sectores) == 1:
             fila_datos = data[st.session_state.rows[0] - 1]
@@ -357,12 +356,15 @@ def main():
                 ("Generar Capacitación Power BI", fila_datos[19] if len(fila_datos) > 19 and fila_datos[19].strip() != "" else "Vacío"),
                 ("Generar Estrategia de Riego", fila_datos[22] if len(fila_datos) > 22 and fila_datos[22].strip() != "" else "Vacío"),
             ]
+            
+            # Título y estilo mejorado
             html_obs_table = """
             <style>
               .comments-table {
                  width: 100%;
                  border-collapse: collapse;
                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                 margin-top: 20px;
               }
               .comments-table td {
                  border: 1px solid #ddd;
@@ -372,31 +374,48 @@ def main():
                  font-weight: bold;
                  text-align: left;
                  width: 50%;
+                 background-color: #ddd; /* Color de fondo para la primera columna */
               }
               .comments-table td:last-child {
                  text-align: left;
                  width: 50%;
               }
+              .table-title {
+                 font-size: 18px;
+                 font-weight: bold;
+                 color: #0b5394;
+                 margin-bottom: 15px;
+              }
             </style>
+            <div class="table-title">Observaciones de Procesos</div>
             <table class="comments-table">
             """
+            
+            # Agregar los procesos y observaciones
             for process, obs in process_obs:
                 html_obs_table += f"<tr><td>{process}</td><td>{obs}</td></tr>"
+            
             html_obs_table += "</table>"
+            
+            # Mostrar la tabla con observaciones
             st.components.v1.html(html_obs_table, height=220)
-
-        # Sección: Comentarios Generales
-        st.subheader("Comentarios Generales")
+        
+        # Sección: Tabla de Comentarios por Sector
+        st.subheader("Comentarios por Sector")
         comentarios_data = {}
         sectores_encontrados = []
+        
         for row_index in st.session_state.rows:
             row = data[row_index - 1]
             sector = row[1]
             comentario = row[24] if len(row) > 24 and row[24] else "Sin comentarios"
             sectores_encontrados.append(sector)
             comentarios_data[sector] = comentario
+        
         sectores_encontrados = sorted(set(sectores_encontrados))
         comentarios_height = 130 if len(sectores_encontrados) <= 10 else 180
+        
+        # Estilo para la tabla de comentarios
         html_comentarios = f"""
         <style>
         .comments-table {{
@@ -428,23 +447,29 @@ def main():
             <thead>
                 <tr>
         """
+        # Crear las cabeceras de la tabla con los sectores
         for sector in sectores_encontrados:
             html_comentarios += f"<th>{sector}</th>"
+        
         html_comentarios += """
                 </tr>
             </thead>
             <tbody>
                 <tr>
         """
+        # Rellenar los comentarios por sector
         for sector in sectores_encontrados:
             comentario = comentarios_data.get(sector, "Sin comentarios")
             html_comentarios += f"<td>{comentario}</td>"
+            
         html_comentarios += """
                 </tr>
             </tbody>
         </table>
         </div>
         """
+        
+        # Mostrar la tabla con comentarios
         st.components.v1.html(html_comentarios, height=comentarios_height)
 
         st.header("Actualizar Registro")

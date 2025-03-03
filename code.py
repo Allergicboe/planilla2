@@ -411,6 +411,11 @@ def main():
             st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
         else:
             fila_datos = data[st.session_state.rows[0] - 1]
+            # Comentarios generales tomados de la casilla (columna 25, índice 24)
+            general_comment = fila_datos[24] if len(fila_datos) > 24 and fila_datos[24].strip() != "" else "Vacío"
+            st.markdown("**Comentarios Generales:**")
+            st.write(general_comment)
+            
             process_obs = [
                 ("Ingreso a Planilla Clientes Nuevos", fila_datos[4] if len(fila_datos) > 4 and fila_datos[4].strip() != "" else "Vacío"),
                 ("Correo Presentación y Solicitud Información", fila_datos[7] if len(fila_datos) > 7 and fila_datos[7].strip() != "" else "Vacío"),

@@ -344,27 +344,28 @@ def main():
         st.components.v1.html(html_table, height=estado_height)
 
         # Sección: Observaciones de Procesos
-        with st.expander("Observaciones por Proceso", expanded=True):
-            if len(st.session_state.selected_sectores) != 1:
-                st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
-            else:
-                fila_datos = data[st.session_state.rows[0] - 1]
-                # Comentarios generales tomados de la casilla (columna 25, índice 24)
-                general_comment = fila_datos[24] if len(fila_datos) > 24 and fila_datos[24].strip() != "" else "Vacío"
-                st.markdown("**Comentarios Generales:**")
+        st.subheader("Observaciones de Procesos")
+        if len(st.session_state.selected_sectores) != 1:
+            st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
+        else:
+            fila_datos = data[st.session_state.rows[0] - 1]
+            # Comentarios generales tomados de la casilla (columna 25, índice 24)
+            general_comment = fila_datos[24] if len(fila_datos) > 24 and fila_datos[24].strip() != "" else "Vacío"
+            # Mostrar Comentarios Generales con el mismo formato que las otras observaciones
+            with st.expander("Comentarios Generales", expanded=True):
                 st.write(general_comment)
-                
-                process_obs = [
-                    ("Ingreso a Planilla Clientes Nuevos", fila_datos[4] if len(fila_datos) > 4 and fila_datos[4].strip() != "" else "Vacío"),
-                    ("Correo Presentación y Solicitud Información", fila_datos[7] if len(fila_datos) > 7 and fila_datos[7].strip() != "" else "Vacío"),
-                    ("Agregar Puntos Críticos", fila_datos[10] if len(fila_datos) > 10 and fila_datos[10].strip() != "" else "Vacío"),
-                    ("Generar Capacitación Plataforma", fila_datos[13] if len(fila_datos) > 13 and fila_datos[13].strip() != "" else "Vacío"),
-                    ("Generar Documento Power BI", fila_datos[16] if len(fila_datos) > 16 and fila_datos[16].strip() != "" else "Vacío"),
-                    ("Generar Capacitación Power BI", fila_datos[19] if len(fila_datos) > 19 and fila_datos[19].strip() != "" else "Vacío"),
-                    ("Generar Estrategia de Riego", fila_datos[22] if len(fila_datos) > 22 and fila_datos[22].strip() != "" else "Vacío"),
-                ]
-                for process, obs in process_obs:
-                    st.markdown(f"**{process}:**")
+            
+            process_obs = [
+                ("Ingreso a Planilla Clientes Nuevos", fila_datos[4] if len(fila_datos) > 4 and fila_datos[4].strip() != "" else "Vacío"),
+                ("Correo Presentación y Solicitud Información", fila_datos[7] if len(fila_datos) > 7 and fila_datos[7].strip() != "" else "Vacío"),
+                ("Agregar Puntos Críticos", fila_datos[10] if len(fila_datos) > 10 and fila_datos[10].strip() != "" else "Vacío"),
+                ("Generar Capacitación Plataforma", fila_datos[13] if len(fila_datos) > 13 and fila_datos[13].strip() != "" else "Vacío"),
+                ("Generar Documento Power BI", fila_datos[16] if len(fila_datos) > 16 and fila_datos[16].strip() != "" else "Vacío"),
+                ("Generar Capacitación Power BI", fila_datos[19] if len(fila_datos) > 19 and fila_datos[19].strip() != "" else "Vacío"),
+                ("Generar Estrategia de Riego", fila_datos[22] if len(fila_datos) > 22 and fila_datos[22].strip() != "" else "Vacío"),
+            ]
+            for process, obs in process_obs:
+                with st.expander(process, expanded=True):
                     st.write(obs)
 
         st.header("Actualizar Registro")

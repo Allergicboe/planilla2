@@ -574,7 +574,7 @@ def main():
                 # Al final de la columna 2 se agrega el campo "Comentarios generales" con altura 68px
                 comentarios_generales = st.text_area("Comentarios generales", value="", height=68, key="comentarios_generales_update")
             
-            submitted = st.form_submit_button("Guardar Cambios", type="primary")
+            submitted = st.form_submit_button("Guardar Cambios", type="primary", use_container_width=True)
             if submitted:
                 steps_updates = [
                     {"step_label": step1["step_label"], "step_col": step1["step_col"], "obs_col": step1["obs_col"], "date_col": step1["date_col"],

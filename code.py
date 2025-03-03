@@ -67,7 +67,7 @@ def find_rows(selected_cuenta, selected_sectores, data):
             rows.append(i + 2)
     return rows
 
-# Actualizar celdas (incluye actualización de observaciones para cada proceso)
+# Actualizar celdas (incluye actualización de cada proceso)
 def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
     now = get_chile_timestamp()
     cells_to_update = []
@@ -97,13 +97,13 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
             else:
                 cells_to_update.append(Cell(row, date_col, ''))
 
-    # Actualizar Comentarios generales (columna 25)
-    comentarios_col = 25
+    # Actualizar Comentarios generales (columna 31)
+    comentarios_col = 31
     for row in rows:
         cells_to_update.append(Cell(row, comentarios_col, comentarios_value))
 
-    # Actualizar fecha de última modificación (columna 26)
-    ultima_actualizacion_col = 26
+    # Actualizar fecha de última modificación (columna 32)
+    ultima_actualizacion_col = 32
     for row in rows:
         cells_to_update.append(Cell(row, ultima_actualizacion_col, now))
 
@@ -132,20 +132,18 @@ def get_state_color(state):
     return colors.get(state, '#E0E0E0')
 
 # Definición centralizada de procesos.
-# Para agregar un nuevo proceso, añade un nuevo diccionario con:
-# - name: nombre del proceso (tal como se mostrará)
-# - step_col: columna donde se almacena el valor del proceso
-# - obs_col: columna donde se almacena la observación del proceso (si aplica)
-# - date_col: columna donde se almacena la fecha de actualización
-# - options: lista de opciones válidas para ese proceso
+# Cada proceso ocupa 3 columnas: proceso, observación y fecha.
+# Se agregan dos nuevos procesos al inicio (después de Consultoría) y se ajustan los índices de los procesos originales.
 processes = [
-    {"name": "Ingreso a Planilla Clientes Nuevos", "step_col": 4, "obs_col": 5, "date_col": 6, "options": ['Sí', 'No']},
-    {"name": "Correo Presentación y Solicitud Información", "step_col": 7, "obs_col": 8, "date_col": 9, "options": ['Sí', 'No', 'Programado']},
-    {"name": "Agregar Puntos Críticos", "step_col": 10, "obs_col": 11, "date_col": 12, "options": ['Sí', 'No']},
-    {"name": "Generar Capacitación Plataforma", "step_col": 13, "obs_col": 14, "date_col": 15, "options": ['Sí (DropControl)', 'Sí (CDTEC IF)', 'No', 'Programado']},
-    {"name": "Generar Documento Power BI", "step_col": 16, "obs_col": 17, "date_col": 18, "options": ['Sí', 'No', 'Programado', 'No aplica']},
-    {"name": "Generar Capacitación Power BI", "step_col": 19, "obs_col": 20, "date_col": 21, "options": ['Sí', 'No', 'Programado', 'No aplica']},
-    {"name": "Generar Estrategia de Riego", "step_col": 22, "obs_col": 23, "date_col": 24, "options": ['Sí', 'No', 'Programado', 'No aplica']}
+    {"name": "Proceso Nuevo 1", "step_col": 4, "obs_col": 5, "date_col": 6, "options": ['Sí', 'No']},
+    {"name": "Proceso Nuevo 2", "step_col": 7, "obs_col": 8, "date_col": 9, "options": ['Sí', 'No', 'Programado']},
+    {"name": "Ingreso a Planilla Clientes Nuevos", "step_col": 10, "obs_col": 11, "date_col": 12, "options": ['Sí', 'No']},
+    {"name": "Correo Presentación y Solicitud Información", "step_col": 13, "obs_col": 14, "date_col": 15, "options": ['Sí', 'No', 'Programado']},
+    {"name": "Agregar Puntos Críticos", "step_col": 16, "obs_col": 17, "date_col": 18, "options": ['Sí', 'No']},
+    {"name": "Generar Capacitación Plataforma", "step_col": 19, "obs_col": 20, "date_col": 21, "options": ['Sí (DropControl)', 'Sí (CDTEC IF)', 'No', 'Programado']},
+    {"name": "Generar Documento Power BI", "step_col": 22, "obs_col": 23, "date_col": 24, "options": ['Sí', 'No', 'Programado', 'No aplica']},
+    {"name": "Generar Capacitación Power BI", "step_col": 25, "obs_col": 26, "date_col": 27, "options": ['Sí', 'No', 'Programado', 'No aplica']},
+    {"name": "Generar Estrategia de Riego", "step_col": 28, "obs_col": 29, "date_col": 30, "options": ['Sí', 'No', 'Programado', 'No aplica']}
 ]
 
 def main():
@@ -177,7 +175,7 @@ def main():
     if "update_successful" not in st.session_state:
         st.session_state.update_successful = False
 
-    # Cargar datos: se recargan si hubo una actualización exitosa
+    # Cargar datos (se recargan si hubo una actualización exitosa)
     if "data" not in st.session_state or st.session_state.update_successful:
         st.session_state.data = get_data()
         st.session_state.update_successful = False
@@ -262,14 +260,14 @@ def main():
             table_data = []
             for row_index in st.session_state.rows:
                 row = data[row_index - 1]  # Ajuste de índice
-                # Extraer valores de cuenta, sector y consultoría
+                # Extraer valores: cuenta, sector y consultoría
                 row_data = [row[0], row[1], row[2]]
                 # Extraer el valor de cada proceso (usando la columna definida en processes)
                 for proc in processes:
                     cell_val = row[proc["step_col"] - 1] if len(row) >= proc["step_col"] else ""
                     row_data.append(cell_val)
-                # Última Actualización (columna 25)
-                row_data.append(row[25] if len(row) > 25 else "")
+                # Última Actualización (columna 32, índice 31)
+                row_data.append(row[31] if len(row) > 31 else "")
                 table_data.append(row_data)
             
             n_rows = len(table_data)
@@ -365,8 +363,8 @@ def main():
                 st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
             else:
                 fila_datos = data[st.session_state.rows[0] - 1]
-                # Comentarios generales (columna 25, índice 24)
-                general_comment = fila_datos[24] if len(fila_datos) > 24 and fila_datos[24].strip() != "" else "Vacío"
+                # Comentarios generales (columna 31, índice 30)
+                general_comment = fila_datos[30] if len(fila_datos) > 30 and fila_datos[30].strip() != "" else "Vacío"
                 with st.expander("Comentarios Generales", expanded=True):
                     st.write(general_comment)
                 

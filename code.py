@@ -548,8 +548,8 @@ def main():
             default_index = options_for_select.index(display_val)
             step7_value = st.selectbox(step7["step_label"], options=options_for_select, index=default_index, key="step_6_update")
             
-            # Al final de la columna 1, se agrega el campo "Comentarios generales"
-            comentarios_generales = st.text_area("Comentarios generales", value="", height=100, key="comentarios_generales_update")
+            # Comentarios generales
+            comentarios_generales = st.text_area("Comentarios generales", value="", height=68, key="comentarios_generales_update")
         
         # Columna 2: observaciones para cada proceso
         with col2:

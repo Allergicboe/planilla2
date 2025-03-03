@@ -425,7 +425,7 @@ def main():
                 # Comentarios generales
                 comentarios_generales = st.text_area("Comentarios generales", value="", height=68, key="comentarios_generales_update")
                 
-                submitted = st.form_submit_button("Guardar Cambios", type="primary", use_container_width=True)
+                submitted = st.form_submit_button("Guardar Cambios")
                 if submitted:
                     steps_updates = []
                     for proc in processes:

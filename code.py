@@ -410,8 +410,6 @@ def main():
         if len(st.session_state.selected_sectores) != 1:
             st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
         else:
-            # Agregar comentarios generales al principio en negrita
-            st.markdown("**Comentarios Generales:**")
             fila_datos = data[st.session_state.rows[0] - 1]
             process_obs = [
                 ("Ingreso a Planilla Clientes Nuevos", fila_datos[4] if len(fila_datos) > 4 and fila_datos[4].strip() != "" else "Vacío"),

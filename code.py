@@ -343,232 +343,232 @@ def main():
         """
         st.components.v1.html(html_table, height=estado_height)
     # Tabla de observaciones (sin título)
-            observaciones_data = []
+        observaciones_data = []
+        for paso in pasos_obs:
+            observaciones_headers.append(paso["nombre"])
+        
+        for row_index in st.session_state.rows:
+            row = data[row_index - 1]  # Ajuste de índice
+            sector = row[1]
+            obs_row = [sector]
+            
+            # Obtener observaciones para cada paso
             for paso in pasos_obs:
-                observaciones_headers.append(paso["nombre"])
+                obs_col = paso["col"] + 1  # La columna de observaciones siempre está a la derecha del paso
+                obs_value = row[obs_col-1] if len(row) > obs_col-1 and row[obs_col-1] else "-"
+                obs_row.append(obs_value)
             
-            for row_index in st.session_state.rows:
-                row = data[row_index - 1]  # Ajuste de índice
-                sector = row[1]
-                obs_row = [sector]
+            observaciones_data.append(obs_row)
+        
+        # Altura dinámica para la tabla de observaciones
+        obs_rows = len(observaciones_data)
+        if obs_rows <= 3:
+            obs_height = 150
+        elif obs_rows <= 10:
+            obs_height = 220
+        else:
+            obs_height = 300
+        
+        html_obs_table = f"""
+        <style>
+        .obs-table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin-top: 15px;
+        }}
+        .obs-table th, .obs-table td {{
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }}
+        .obs-table th {{
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }}
+        .obs-table tr:nth-child(even) {{
+            background-color: #f9f9f9;
+        }}
+        </style>
+        <div style="height: {obs_height}px; overflow-y: auto;">
+        <table class="obs-table">
+            <thead>
+                <tr>
+        """
+        for header in observaciones_headers:
+            html_obs_table += f"<th>{header}</th>"
+        html_obs_table += """
+                </tr>
+            </thead>
+            <tbody>
+        """
+        for row in observaciones_data:
+            html_obs_table += "<tr>"
+            for cell in row:
+                html_obs_table += f"<td>{cell}</td>"
+            html_obs_table += "</tr>"
+        html_obs_table += """
+            </tbody>
+        </table>
+        </div>
+        """
+        st.components.v1.html(html_obs_table, height=obs_height)
+
+        # Mantener la tabla de comentarios por sector
+        comentarios_data = {}
+        sectores_encontrados = []
+        for row_index in st.session_state.rows:
+            row = data[row_index - 1]
+            sector = row[1]
+            comentario = row[24] if len(row) > 24 and row[24] else "Sin comentarios"
+            sectores_encontrados.append(sector)
+            comentarios_data[sector] = comentario
+        sectores_encontrados = sorted(set(sectores_encontrados))
+        comentarios_height = 130 if len(sectores_encontrados) <= 10 else 180
+        html_comentarios = f"""
+        <style>
+        .comments-table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin-top: 15px;
+        }}
+        .comments-table th, .comments-table td {{
+            border: 1px solid #ddd;
+            padding: 12px;
+        }}
+        .comments-table th {{
+            background-color: #f2f2f2;
+            text-align: center;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }}
+        .comments-table td {{
+            text-align: left;
+            vertical-align: top;
+            background-color: #f9f9f9;
+        }}
+        </style>
+        <div style="height: {comentarios_height}px; overflow-y: auto;">
+        <table class="comments-table">
+            <thead>
+                <tr>
+        """
+        for sector in sectores_encontrados:
+            html_comentarios += f"<th>{sector}</th>"
+        html_comentarios += """
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+        """
+        for sector in sectores_encontrados:
+            comentario = comentarios_data.get(sector, "Sin comentarios")
+            html_comentarios += f"<td>{comentario}</td>"
+        html_comentarios += """
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        """
+        st.components.v1.html(html_comentarios, height=comentarios_height)
+
+        st.header("Actualizar Registro")
+        fila_index = st.session_state.rows[0] - 1
+        fila_datos = data[fila_index]
+        
+        # Opciones para cada paso
+        step_options = {
+            "Ingreso a Planilla Clientes Nuevos": ['Sí', 'No'],
+            "Correo Presentación y Solicitud Información": ['Sí', 'No', 'Programado'],
+            "Agregar Puntos Críticos": ['Sí', 'No'],
+            "Generar Capacitación Plataforma": ['Sí (DropControl)', 'Sí (CDTEC IF)', 'No', 'Programado'],
+            "Generar Documento Power BI": ['Sí', 'No', 'Programado', 'No aplica'],
+            "Generar Capacitación Power BI": ['Sí', 'No', 'Programado', 'No aplica'],
+            "Generar Estrategia de Riego": ['Sí', 'No', 'Programado', 'No aplica']
+        }
+        
+        with st.form("update_form"):
+            # Reorganización: Procesos en columna 1, Observaciones en columna 2
+            col1, col2 = st.columns(2)
+            
+            # Consultoría (sin observaciones)
+            consultoria_default = fila_datos[2] if len(fila_datos) >= 3 else ""
+            display_consultoria = consultoria_default.strip() if consultoria_default and consultoria_default.strip() != "" else "Vacío"
+            consultoria_options = ["Sí", "No"]
+            if display_consultoria not in consultoria_options:
+                consultoria_options = [display_consultoria] + consultoria_options
+            try:
+                consultoria_index = consultoria_options.index(display_consultoria)
+            except ValueError:
+                consultoria_index = 0
+            with col1:
+                consultoria_value = st.selectbox("Consultoría", options=consultoria_options, index=consultoria_index, key="consultoria")
+            
+            # Inicializar arreglos para almacenar los valores y observaciones
+            step_values = []
+            step_obs_values = []
+            
+            # Definir los pasos y sus atributos
+            steps = [
+                {"step_label": "Ingreso a Planilla Clientes Nuevos", "step_col": 4, "obs_col": 5, "date_col": 6},
+                {"step_label": "Correo Presentación y Solicitud Información", "step_col": 7, "obs_col": 8, "date_col": 9},
+                {"step_label": "Agregar Puntos Críticos", "step_col": 10, "obs_col": 11, "date_col": 12},
+                {"step_label": "Generar Capacitación Plataforma", "step_col": 13, "obs_col": 14, "date_col": 15},
+                {"step_label": "Generar Documento Power BI", "step_col": 16, "obs_col": 17, "date_col": 18},
+                {"step_label": "Generar Capacitación Power BI", "step_col": 19, "obs_col": 20, "date_col": 21},
+                {"step_label": "Generar Estrategia de Riego", "step_col": 22, "obs_col": 23, "date_col": 24}
+            ]
+            
+            # Crear selector para cada paso en col1 y su correspondiente área de observaciones en col2
+            for i, step in enumerate(steps):
+                # Obtener valores actuales
+                default_val = fila_datos[step["step_col"] - 1] if len(fila_datos) > step["step_col"] - 1 else ""
+                display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
+                options_for_select = step_options[step["step_label"]].copy()
+                if display_val not in options_for_select:
+                    options_for_select = [display_val] + options_for_select
+                default_index = options_for_select.index(display_val)
                 
-                # Obtener observaciones para cada paso
-                for paso in pasos_obs:
-                    obs_col = paso["col"] + 1  # La columna de observaciones siempre está a la derecha del paso
-                    obs_value = row[obs_col-1] if len(row) > obs_col-1 and row[obs_col-1] else "-"
-                    obs_row.append(obs_value)
+                # Obtener observaciones actuales
+                default_obs = fila_datos[step["obs_col"] - 1] if len(fila_datos) > step["obs_col"] - 1 else ""
                 
-                observaciones_data.append(obs_row)
-            
-            # Altura dinámica para la tabla de observaciones
-            obs_rows = len(observaciones_data)
-            if obs_rows <= 3:
-                obs_height = 150
-            elif obs_rows <= 10:
-                obs_height = 220
-            else:
-                obs_height = 300
-            
-            html_obs_table = f"""
-            <style>
-            .obs-table {{
-                width: 100%;
-                border-collapse: collapse;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                margin-top: 15px;
-            }}
-            .obs-table th, .obs-table td {{
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }}
-            .obs-table th {{
-                background-color: #f2f2f2;
-                position: sticky;
-                top: 0;
-            }}
-            .obs-table tr:nth-child(even) {{
-                background-color: #f9f9f9;
-            }}
-            </style>
-            <div style="height: {obs_height}px; overflow-y: auto;">
-            <table class="obs-table">
-                <thead>
-                    <tr>
-            """
-            for header in observaciones_headers:
-                html_obs_table += f"<th>{header}</th>"
-            html_obs_table += """
-                    </tr>
-                </thead>
-                <tbody>
-            """
-            for row in observaciones_data:
-                html_obs_table += "<tr>"
-                for cell in row:
-                    html_obs_table += f"<td>{cell}</td>"
-                html_obs_table += "</tr>"
-            html_obs_table += """
-                </tbody>
-            </table>
-            </div>
-            """
-            st.components.v1.html(html_obs_table, height=obs_height)
-    
-            # Mantener la tabla de comentarios por sector
-            comentarios_data = {}
-            sectores_encontrados = []
-            for row_index in st.session_state.rows:
-                row = data[row_index - 1]
-                sector = row[1]
-                comentario = row[24] if len(row) > 24 and row[24] else "Sin comentarios"
-                sectores_encontrados.append(sector)
-                comentarios_data[sector] = comentario
-            sectores_encontrados = sorted(set(sectores_encontrados))
-            comentarios_height = 130 if len(sectores_encontrados) <= 10 else 180
-            html_comentarios = f"""
-            <style>
-            .comments-table {{
-                width: 100%;
-                border-collapse: collapse;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                margin-top: 15px;
-            }}
-            .comments-table th, .comments-table td {{
-                border: 1px solid #ddd;
-                padding: 12px;
-            }}
-            .comments-table th {{
-                background-color: #f2f2f2;
-                text-align: center;
-                font-weight: bold;
-                position: sticky;
-                top: 0;
-                z-index: 10;
-            }}
-            .comments-table td {{
-                text-align: left;
-                vertical-align: top;
-                background-color: #f9f9f9;
-            }}
-            </style>
-            <div style="height: {comentarios_height}px; overflow-y: auto;">
-            <table class="comments-table">
-                <thead>
-                    <tr>
-            """
-            for sector in sectores_encontrados:
-                html_comentarios += f"<th>{sector}</th>"
-            html_comentarios += """
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-            """
-            for sector in sectores_encontrados:
-                comentario = comentarios_data.get(sector, "Sin comentarios")
-                html_comentarios += f"<td>{comentario}</td>"
-            html_comentarios += """
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-            """
-            st.components.v1.html(html_comentarios, height=comentarios_height)
-    
-            st.header("Actualizar Registro")
-            fila_index = st.session_state.rows[0] - 1
-            fila_datos = data[fila_index]
-            
-            # Opciones para cada paso
-            step_options = {
-                "Ingreso a Planilla Clientes Nuevos": ['Sí', 'No'],
-                "Correo Presentación y Solicitud Información": ['Sí', 'No', 'Programado'],
-                "Agregar Puntos Críticos": ['Sí', 'No'],
-                "Generar Capacitación Plataforma": ['Sí (DropControl)', 'Sí (CDTEC IF)', 'No', 'Programado'],
-                "Generar Documento Power BI": ['Sí', 'No', 'Programado', 'No aplica'],
-                "Generar Capacitación Power BI": ['Sí', 'No', 'Programado', 'No aplica'],
-                "Generar Estrategia de Riego": ['Sí', 'No', 'Programado', 'No aplica']
-            }
-            
-            with st.form("update_form"):
-                # Reorganización: Procesos en columna 1, Observaciones en columna 2
-                col1, col2 = st.columns(2)
-                
-                # Consultoría (sin observaciones)
-                consultoria_default = fila_datos[2] if len(fila_datos) >= 3 else ""
-                display_consultoria = consultoria_default.strip() if consultoria_default and consultoria_default.strip() != "" else "Vacío"
-                consultoria_options = ["Sí", "No"]
-                if display_consultoria not in consultoria_options:
-                    consultoria_options = [display_consultoria] + consultoria_options
-                try:
-                    consultoria_index = consultoria_options.index(display_consultoria)
-                except ValueError:
-                    consultoria_index = 0
+                # Selector de proceso en columna 1
                 with col1:
-                    consultoria_value = st.selectbox("Consultoría", options=consultoria_options, index=consultoria_index, key="consultoria")
+                    step_value = st.selectbox(step["step_label"], options=options_for_select, index=default_index, key=f"step_{i}")
+                    step_values.append(step_value)
                 
-                # Inicializar arreglos para almacenar los valores y observaciones
-                step_values = []
-                step_obs_values = []
-                
-                # Definir los pasos y sus atributos
-                steps = [
-                    {"step_label": "Ingreso a Planilla Clientes Nuevos", "step_col": 4, "obs_col": 5, "date_col": 6},
-                    {"step_label": "Correo Presentación y Solicitud Información", "step_col": 7, "obs_col": 8, "date_col": 9},
-                    {"step_label": "Agregar Puntos Críticos", "step_col": 10, "obs_col": 11, "date_col": 12},
-                    {"step_label": "Generar Capacitación Plataforma", "step_col": 13, "obs_col": 14, "date_col": 15},
-                    {"step_label": "Generar Documento Power BI", "step_col": 16, "obs_col": 17, "date_col": 18},
-                    {"step_label": "Generar Capacitación Power BI", "step_col": 19, "obs_col": 20, "date_col": 21},
-                    {"step_label": "Generar Estrategia de Riego", "step_col": 22, "obs_col": 23, "date_col": 24}
-                ]
-                
-                # Crear selector para cada paso en col1 y su correspondiente área de observaciones en col2
+                # Área de observaciones en columna 2
+                with col2:
+                    obs_label = f"Observaciones - {step['step_label'].split(' ')[1] if len(step['step_label'].split(' ')) > 1 else step['step_label']}"
+                    step_obs_value = st.text_area(obs_label, value=default_obs, height=68, key=f"obs_{i}")
+                    step_obs_values.append(step_obs_value)
+            
+            # Campo de Comentarios (a pantalla completa)
+            comentarios_default = fila_datos[24] if len(fila_datos) >= 25 else ""
+            comentarios_value = st.text_area("Comentarios", value=comentarios_default if comentarios_default is not None else "", height=100)
+            
+            submitted = st.form_submit_button("Guardar Cambios", type="primary")
+            if submitted:
+                # Consolidar los datos de los pasos con observaciones
+                steps_updates = []
                 for i, step in enumerate(steps):
-                    # Obtener valores actuales
-                    default_val = fila_datos[step["step_col"] - 1] if len(fila_datos) > step["step_col"] - 1 else ""
-                    display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-                    options_for_select = step_options[step["step_label"]].copy()
-                    if display_val not in options_for_select:
-                        options_for_select = [display_val] + options_for_select
-                    default_index = options_for_select.index(display_val)
-                    
-                    # Obtener observaciones actuales
-                    default_obs = fila_datos[step["obs_col"] - 1] if len(fila_datos) > step["obs_col"] - 1 else ""
-                    
-                    # Selector de proceso en columna 1
-                    with col1:
-                        step_value = st.selectbox(step["step_label"], options=options_for_select, index=default_index, key=f"step_{i}")
-                        step_values.append(step_value)
-                    
-                    # Área de observaciones en columna 2
-                    with col2:
-                        obs_label = f"Observaciones - {step['step_label'].split(' ')[1] if len(step['step_label'].split(' ')) > 1 else step['step_label']}"
-                        step_obs_value = st.text_area(obs_label, value=default_obs, height=68, key=f"obs_{i}")
-                        step_obs_values.append(step_obs_value)
+                    steps_updates.append({
+                        "step_label": step["step_label"],
+                        "step_col": step["step_col"],
+                        "obs_col": step["obs_col"],
+                        "date_col": step["date_col"],
+                        "value": step_values[i],
+                        "obs_value": step_obs_values[i]
+                    })
                 
-                # Campo de Comentarios (a pantalla completa)
-                comentarios_default = fila_datos[24] if len(fila_datos) >= 25 else ""
-                comentarios_value = st.text_area("Comentarios", value=comentarios_default if comentarios_default is not None else "", height=100)
-                
-                submitted = st.form_submit_button("Guardar Cambios", type="primary")
-                if submitted:
-                    # Consolidar los datos de los pasos con observaciones
-                    steps_updates = []
-                    for i, step in enumerate(steps):
-                        steps_updates.append({
-                            "step_label": step["step_label"],
-                            "step_col": step["step_col"],
-                            "obs_col": step["obs_col"],
-                            "date_col": step["date_col"],
-                            "value": step_values[i],
-                            "obs_value": step_obs_values[i]
-                        })
-                    
-                    success = update_steps(st.session_state.rows, steps_updates, consultoria_value, comentarios_value)
-                    if success:
-                        st.session_state.update_successful = True
-                        st.rerun()
-    
-    if __name__ == "__main__":
-        main()
+                success = update_steps(st.session_state.rows, steps_updates, consultoria_value, comentarios_value)
+                if success:
+                    st.session_state.update_successful = True
+                    st.rerun()
+
+if __name__ == "__main__":
+    main()

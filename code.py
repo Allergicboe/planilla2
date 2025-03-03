@@ -342,8 +342,8 @@ def main():
         </div>
         """
         st.components.v1.html(html_table, height=estado_height)
-        
-        # Bloque de Observaciones:
+
+        # Sección: Observaciones de Procesos
         st.subheader("Observaciones de Procesos")
         # Se muestra solo si se ha seleccionado un único sector de riego
         if len(st.session_state.selected_sectores) == 1:
@@ -357,95 +357,56 @@ def main():
                 ("Generar Capacitación Power BI", fila_datos[19] if len(fila_datos) > 19 and fila_datos[19].strip() != "" else "Vacío"),
                 ("Generar Estrategia de Riego", fila_datos[22] if len(fila_datos) > 22 and fila_datos[22].strip() != "" else "Vacío"),
             ]
-            html_obs_table = """
+            html_obs_table = f"""
             <style>
-              .comments-table {
-                 width: 100%;
-                 border-collapse: collapse;
-                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-              }
-              .comments-table td {
-                 border: 1px solid #ddd;
-                 padding: 12px;
-              }
-              .comments-table td:first-child {
-                 font-weight: bold;
-                 text-align: left;
-                 width: 50%;
-              }
-              .comments-table td:last-child {
-                 text-align: left;
-                 width: 50%;
-              }
+            .comments-table {{
+                width: 100%;
+                border-collapse: collapse;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                margin-top: 15px;
+            }}
+            .comments-table th, .comments-table td {{
+                border: 1px solid #ddd;
+                padding: 12px;
+            }}
+            .comments-table th {{
+                background-color: #f2f2f2;
+                text-align: center;
+                font-weight: bold;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }}
+            .comments-table td {{
+                text-align: left;
+                vertical-align: top;
+                background-color: #f9f9f9;
+            }}
             </style>
+            <div style="height: 220px; overflow-y: auto;">
             <table class="comments-table">
+                <thead>
+                    <tr>
             """
-            for process, obs in process_obs:
-                html_obs_table += f"<tr><td>{process}</td><td>{obs}</td></tr>"
-            html_obs_table += "</table>"
+            # Agregar los encabezados de los procesos
+            for process, _ in process_obs:
+                html_obs_table += f"<th>{process}</th>"
+            html_obs_table += """
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+            """
+            # Agregar los comentarios de cada proceso
+            for _, obs in process_obs:
+                html_obs_table += f"<td>{obs}</td>"
+            html_obs_table += """
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            """
             st.components.v1.html(html_obs_table, height=220)
-
-        # Sección: Tabla de Comentarios por Sector
-        st.subheader("Comentarios por Sector")
-        comentarios_data = {}
-        sectores_encontrados = []
-        for row_index in st.session_state.rows:
-            row = data[row_index - 1]
-            sector = row[1]
-            comentario = row[24] if len(row) > 24 and row[24] else "Sin comentarios"
-            sectores_encontrados.append(sector)
-            comentarios_data[sector] = comentario
-        sectores_encontrados = sorted(set(sectores_encontrados))
-        comentarios_height = 130 if len(sectores_encontrados) <= 10 else 180
-        html_comentarios = f"""
-        <style>
-        .comments-table {{
-            width: 100%;
-            border-collapse: collapse;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin-top: 15px;
-        }}
-        .comments-table th, .comments-table td {{
-            border: 1px solid #ddd;
-            padding: 12px;
-        }}
-        .comments-table th {{
-            background-color: #f2f2f2;
-            text-align: center;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }}
-        .comments-table td {{
-            text-align: left;
-            vertical-align: top;
-            background-color: #f9f9f9;
-        }}
-        </style>
-        <div style="height: {comentarios_height}px; overflow-y: auto;">
-        <table class="comments-table">
-            <thead>
-                <tr>
-        """
-        for sector in sectores_encontrados:
-            html_comentarios += f"<th>{sector}</th>"
-        html_comentarios += """
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-        """
-        for sector in sectores_encontrados:
-            comentario = comentarios_data.get(sector, "Sin comentarios")
-            html_comentarios += f"<td>{comentario}</td>"
-        html_comentarios += """
-                </tr>
-            </tbody>
-        </table>
-        </div>
-        """
-        st.components.v1.html(html_comentarios, height=comentarios_height)
 
         st.header("Actualizar Registro")
         fila_index = st.session_state.rows[0] - 1

@@ -548,150 +548,63 @@ with st.form("update_form"):
         default_index = options_for_select.index(display_val)
         step7_value = st.selectbox(step7["step_label"], options=options_for_select, index=default_index, key="step_6")
         
-with st.form("update_form"):
-    col1, col2 = st.columns(2)
-    
-    # ----- Columna 1: Selectboxes -----
-    with col1:
-        # 1. Consultoría (sin observaciones)
-        consultoria_default = fila_datos[2] if len(fila_datos) >= 3 else ""
-        display_consultoria = consultoria_default.strip() if consultoria_default and consultoria_default.strip() != "" else "Vacío"
-        consultoria_options = ["Sí", "No"]
-        if display_consultoria not in consultoria_options:
-            consultoria_options = [display_consultoria] + consultoria_options
-        try:
-            consultoria_index = consultoria_options.index(display_consultoria)
-        except ValueError:
-            consultoria_index = 0
-        consultoria_value = st.selectbox("Consultoría", options=consultoria_options, index=consultoria_index, key="consultoria")
-        
-        # 2. Ingreso a Planilla Clientes Nuevos
-        step1 = {"step_label": "Ingreso a Planilla Clientes Nuevos", "step_col": 4, "obs_col": 5, "date_col": 6}
-        default_val = fila_datos[step1["step_col"] - 1] if len(fila_datos) > step1["step_col"] - 1 else ""
-        display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-        options_for_select = step_options[step1["step_label"]].copy()
-        if display_val not in options_for_select:
-            options_for_select = [display_val] + options_for_select
-        default_index = options_for_select.index(display_val)
-        step1_value = st.selectbox(step1["step_label"], options=options_for_select, index=default_index, key="step_0")
-        
-        # 3. Correo Presentación y Solicitud Información
-        step2 = {"step_label": "Correo Presentación y Solicitud Información", "step_col": 7, "obs_col": 8, "date_col": 9}
-        default_val = fila_datos[step2["step_col"] - 1] if len(fila_datos) > step2["step_col"] - 1 else ""
-        display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-        options_for_select = step_options[step2["step_label"]].copy()
-        if display_val not in options_for_select:
-            options_for_select = [display_val] + options_for_select
-        default_index = options_for_select.index(display_val)
-        step2_value = st.selectbox(step2["step_label"], options=options_for_select, index=default_index, key="step_1")
-        
-        # 4. Agregar Puntos Críticos
-        step3 = {"step_label": "Agregar Puntos Críticos", "step_col": 10, "obs_col": 11, "date_col": 12}
-        default_val = fila_datos[step3["step_col"] - 1] if len(fila_datos) > step3["step_col"] - 1 else ""
-        display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-        options_for_select = step_options[step3["step_label"]].copy()
-        if display_val not in options_for_select:
-            options_for_select = [display_val] + options_for_select
-        default_index = options_for_select.index(display_val)
-        step3_value = st.selectbox(step3["step_label"], options=options_for_select, index=default_index, key="step_2")
-        
-        # 5. Generar Capacitación Plataforma
-        step4 = {"step_label": "Generar Capacitación Plataforma", "step_col": 13, "obs_col": 14, "date_col": 15}
-        default_val = fila_datos[step4["step_col"] - 1] if len(fila_datos) > step4["step_col"] - 1 else ""
-        display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-        options_for_select = step_options[step4["step_label"]].copy()
-        if display_val not in options_for_select:
-            options_for_select = [display_val] + options_for_select
-        default_index = options_for_select.index(display_val)
-        step4_value = st.selectbox(step4["step_label"], options=options_for_select, index=default_index, key="step_3")
-        
-        # 6. Generar Documento Power BI
-        step5 = {"step_label": "Generar Documento Power BI", "step_col": 16, "obs_col": 17, "date_col": 18}
-        default_val = fila_datos[step5["step_col"] - 1] if len(fila_datos) > step5["step_col"] - 1 else ""
-        display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-        options_for_select = step_options[step5["step_label"]].copy()
-        if display_val not in options_for_select:
-            options_for_select = [display_val] + options_for_select
-        default_index = options_for_select.index(display_val)
-        step5_value = st.selectbox(step5["step_label"], options=options_for_select, index=default_index, key="step_4")
-        
-        # 7. Generar Capacitación Power BI
-        step6 = {"step_label": "Generar Capacitación Power BI", "step_col": 19, "obs_col": 20, "date_col": 21}
-        default_val = fila_datos[step6["step_col"] - 1] if len(fila_datos) > step6["step_col"] - 1 else ""
-        display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-        options_for_select = step_options[step6["step_label"]].copy()
-        if display_val not in options_for_select:
-            options_for_select = [display_val] + options_for_select
-        default_index = options_for_select.index(display_val)
-        step6_value = st.selectbox(step6["step_label"], options=options_for_select, index=default_index, key="step_5")
-        
-        # 8. Generar Estrategia de Riego
-        step7 = {"step_label": "Generar Estrategia de Riego", "step_col": 22, "obs_col": 23, "date_col": 24}
-        default_val = fila_datos[step7["step_col"] - 1] if len(fila_datos) > step7["step_col"] - 1 else ""
-        display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-        options_for_select = step_options[step7["step_label"]].copy()
-        if display_val not in options_for_select:
-            options_for_select = [display_val] + options_for_select
-        default_index = options_for_select.index(display_val)
-        step7_value = st.selectbox(step7["step_label"], options=options_for_select, index=default_index, key="step_6")
-        
     # ----- Columna 2: Observaciones -----
-    with col2:
-        # Observaciones para Paso 1
-        default_obs = fila_datos[step1["obs_col"] - 1] if len(fila_datos) > step1["obs_col"] - 1 else ""
-        step1_obs_value = st.text_area("Observaciones - Ingreso a Planilla", value=default_obs, height=68, key="obs_0")
+        with col2:
+            # Observaciones para Paso 1
+            default_obs = fila_datos[step1["obs_col"] - 1] if len(fila_datos) > step1["obs_col"] - 1 else ""
+            step1_obs_value = st.text_area("Observaciones - Ingreso a Planilla", value=default_obs, height=68, key="obs_0")
+            
+            # Observaciones para Paso 2
+            default_obs = fila_datos[step2["obs_col"] - 1] if len(fila_datos) > step2["obs_col"] - 1 else ""
+            step2_obs_value = st.text_area("Observaciones - Correo Presentación", value=default_obs, height=68, key="obs_1")
+            
+            # Observaciones para Paso 3
+            default_obs = fila_datos[step3["obs_col"] - 1] if len(fila_datos) > step3["obs_col"] - 1 else ""
+            step3_obs_value = st.text_area("Observaciones - Puntos Críticos", value=default_obs, height=68, key="obs_2")
+            
+            # Observaciones para Paso 4
+            default_obs = fila_datos[step4["obs_col"] - 1] if len(fila_datos) > step4["obs_col"] - 1 else ""
+            step4_obs_value = st.text_area("Observaciones - Capacitación Plataforma", value=default_obs, height=68, key="obs_3")
+            
+            # Observaciones para Paso 5
+            default_obs = fila_datos[step5["obs_col"] - 1] if len(fila_datos) > step5["obs_col"] - 1 else ""
+            step5_obs_value = st.text_area("Observaciones - Documento Power BI", value=default_obs, height=68, key="obs_4")
+            
+            # Observaciones para Paso 6
+            default_obs = fila_datos[step6["obs_col"] - 1] if len(fila_datos) > step6["obs_col"] - 1 else ""
+            step6_obs_value = st.text_area("Observaciones - Capacitación Power BI", value=default_obs, height=68, key="obs_5")
+            
+            # Observaciones para Paso 7
+            default_obs = fila_datos[step7["obs_col"] - 1] if len(fila_datos) > step7["obs_col"] - 1 else ""
+            step7_obs_value = st.text_area("Observaciones - Estrategia de Riego", value=default_obs, height=68, key="obs_6")
         
-        # Observaciones para Paso 2
-        default_obs = fila_datos[step2["obs_col"] - 1] if len(fila_datos) > step2["obs_col"] - 1 else ""
-        step2_obs_value = st.text_area("Observaciones - Correo Presentación", value=default_obs, height=68, key="obs_1")
+        # Campo de Comentarios (a pantalla completa, fuera de las columnas)
+        comentarios_default = fila_datos[24] if len(fila_datos) >= 25 else ""
+        comentarios_value = st.text_area("Comentarios", value=comentarios_default if comentarios_default is not None else "", height=100)
         
-        # Observaciones para Paso 3
-        default_obs = fila_datos[step3["obs_col"] - 1] if len(fila_datos) > step3["obs_col"] - 1 else ""
-        step3_obs_value = st.text_area("Observaciones - Puntos Críticos", value=default_obs, height=68, key="obs_2")
-        
-        # Observaciones para Paso 4
-        default_obs = fila_datos[step4["obs_col"] - 1] if len(fila_datos) > step4["obs_col"] - 1 else ""
-        step4_obs_value = st.text_area("Observaciones - Capacitación Plataforma", value=default_obs, height=68, key="obs_3")
-        
-        # Observaciones para Paso 5
-        default_obs = fila_datos[step5["obs_col"] - 1] if len(fila_datos) > step5["obs_col"] - 1 else ""
-        step5_obs_value = st.text_area("Observaciones - Documento Power BI", value=default_obs, height=68, key="obs_4")
-        
-        # Observaciones para Paso 6
-        default_obs = fila_datos[step6["obs_col"] - 1] if len(fila_datos) > step6["obs_col"] - 1 else ""
-        step6_obs_value = st.text_area("Observaciones - Capacitación Power BI", value=default_obs, height=68, key="obs_5")
-        
-        # Observaciones para Paso 7
-        default_obs = fila_datos[step7["obs_col"] - 1] if len(fila_datos) > step7["obs_col"] - 1 else ""
-        step7_obs_value = st.text_area("Observaciones - Estrategia de Riego", value=default_obs, height=68, key="obs_6")
-    
-    # Campo de Comentarios (a pantalla completa, fuera de las columnas)
-    comentarios_default = fila_datos[24] if len(fila_datos) >= 25 else ""
-    comentarios_value = st.text_area("Comentarios", value=comentarios_default if comentarios_default is not None else "", height=100)
-    
-    submitted = st.form_submit_button("Guardar Cambios", type="primary")
-    if submitted:
-        # Consolidar los datos de los pasos con observaciones
-        steps_updates = [
-            {"step_label": step1["step_label"], "step_col": step1["step_col"], "obs_col": step1["obs_col"], "date_col": step1["date_col"],
-             "value": step1_value, "obs_value": step1_obs_value},
-            {"step_label": step2["step_label"], "step_col": step2["step_col"], "obs_col": step2["obs_col"], "date_col": step2["date_col"],
-             "value": step2_value, "obs_value": step2_obs_value},
-            {"step_label": step3["step_label"], "step_col": step3["step_col"], "obs_col": step3["obs_col"], "date_col": step3["date_col"],
-             "value": step3_value, "obs_value": step3_obs_value},
-            {"step_label": step4["step_label"], "step_col": step4["step_col"], "obs_col": step4["obs_col"], "date_col": step4["date_col"],
-             "value": step4_value, "obs_value": step4_obs_value},
-            {"step_label": step5["step_label"], "step_col": step5["step_col"], "obs_col": step5["obs_col"], "date_col": step5["date_col"],
-             "value": step5_value, "obs_value": step5_obs_value},
-            {"step_label": step6["step_label"], "step_col": step6["step_col"], "obs_col": step6["obs_col"], "date_col": step6["date_col"],
-             "value": step6_value, "obs_value": step6_obs_value},
-            {"step_label": step7["step_label"], "step_col": step7["step_col"], "obs_col": step7["obs_col"], "date_col": step7["date_col"],
-             "value": step7_value, "obs_value": step7_obs_value},
-        ]
-        success = update_steps(st.session_state.rows, steps_updates, consultoria_value, comentarios_value)
-        if success:
-            st.session_state.update_successful = True
-            st.rerun()
+        submitted = st.form_submit_button("Guardar Cambios", type="primary")
+        if submitted:
+            # Consolidar los datos de los pasos con observaciones
+            steps_updates = [
+                {"step_label": step1["step_label"], "step_col": step1["step_col"], "obs_col": step1["obs_col"], "date_col": step1["date_col"],
+                 "value": step1_value, "obs_value": step1_obs_value},
+                {"step_label": step2["step_label"], "step_col": step2["step_col"], "obs_col": step2["obs_col"], "date_col": step2["date_col"],
+                 "value": step2_value, "obs_value": step2_obs_value},
+                {"step_label": step3["step_label"], "step_col": step3["step_col"], "obs_col": step3["obs_col"], "date_col": step3["date_col"],
+                 "value": step3_value, "obs_value": step3_obs_value},
+                {"step_label": step4["step_label"], "step_col": step4["step_col"], "obs_col": step4["obs_col"], "date_col": step4["date_col"],
+                 "value": step4_value, "obs_value": step4_obs_value},
+                {"step_label": step5["step_label"], "step_col": step5["step_col"], "obs_col": step5["obs_col"], "date_col": step5["date_col"],
+                 "value": step5_value, "obs_value": step5_obs_value},
+                {"step_label": step6["step_label"], "step_col": step6["step_col"], "obs_col": step6["obs_col"], "date_col": step6["date_col"],
+                 "value": step6_value, "obs_value": step6_obs_value},
+                {"step_label": step7["step_label"], "step_col": step7["step_col"], "obs_col": step7["obs_col"], "date_col": step7["date_col"],
+                 "value": step7_value, "obs_value": step7_obs_value},
+            ]
+            success = update_steps(st.session_state.rows, steps_updates, consultoria_value, comentarios_value)
+            if success:
+                st.session_state.update_successful = True
+                st.rerun()
 
 if __name__ == "__main__":
     main()

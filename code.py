@@ -557,3 +557,5 @@ def main():
                     st.session_state.update_successful = True
                     st.rerun()
 
+if __name__ == "__main__":
+    main()

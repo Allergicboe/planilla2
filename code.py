@@ -344,7 +344,7 @@ def main():
         st.components.v1.html(html_table, height=estado_height)
         
         # Bloque de Observaciones:
-        st.header("Observaciones de Procesos")
+        st.subheader("Observaciones de Procesos")
         # Se muestra solo si se ha seleccionado un único sector de riego
         if len(st.session_state.selected_sectores) == 1:
             fila_datos = data[st.session_state.rows[0] - 1]

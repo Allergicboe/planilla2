@@ -342,46 +342,47 @@ def main():
         </div>
         """
         st.components.v1.html(html_table, height=estado_height)
-
-        # Nueva tabla de observaciones (sin título), debajo de Estado Actual.
-        # Usamos la primera fila seleccionada para mostrar las observaciones.
-        fila_datos = data[st.session_state.rows[0] - 1]
-        process_obs = [
-            ("Ingreso a Planilla Clientes Nuevos", fila_datos[4] if len(fila_datos) > 4 and fila_datos[4].strip() != "" else "Vacío"),
-            ("Correo Presentación y Solicitud Información", fila_datos[7] if len(fila_datos) > 7 and fila_datos[7].strip() != "" else "Vacío"),
-            ("Agregar Puntos Críticos", fila_datos[10] if len(fila_datos) > 10 and fila_datos[10].strip() != "" else "Vacío"),
-            ("Generar Capacitación Plataforma", fila_datos[13] if len(fila_datos) > 13 and fila_datos[13].strip() != "" else "Vacío"),
-            ("Generar Documento Power BI", fila_datos[16] if len(fila_datos) > 16 and fila_datos[16].strip() != "" else "Vacío"),
-            ("Generar Capacitación Power BI", fila_datos[19] if len(fila_datos) > 19 and fila_datos[19].strip() != "" else "Vacío"),
-            ("Generar Estrategia de Riego", fila_datos[22] if len(fila_datos) > 22 and fila_datos[22].strip() != "" else "Vacío"),
-        ]
-        html_obs_table = """
-        <style>
-          .obs-table {
-             width: 100%;
-             border-collapse: collapse;
-             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-          }
-          .obs-table td {
-             border: 1px solid #ddd;
-             padding: 8px;
-          }
-          .obs-table td:first-child {
-             font-weight: bold;
-             text-align: left;
-             width: 50%;
-          }
-          .obs-table td:last-child {
-             text-align: left;
-             width: 50%;
-          }
-        </style>
-        <table class="obs-table">
-        """
-        for process, obs in process_obs:
-            html_obs_table += f"<tr><td>{process}</td><td>{obs}</td></tr>"
-        html_obs_table += "</table>"
-        st.components.v1.html(html_obs_table, height=220)
+        
+        # Bloque de Observaciones:
+        # Se muestra solo si se ha seleccionado un único sector de riego
+        if len(st.session_state.selected_sectores) == 1:
+            fila_datos = data[st.session_state.rows[0] - 1]
+            process_obs = [
+                ("Ingreso a Planilla Clientes Nuevos", fila_datos[4] if len(fila_datos) > 4 and fila_datos[4].strip() != "" else "Vacío"),
+                ("Correo Presentación y Solicitud Información", fila_datos[7] if len(fila_datos) > 7 and fila_datos[7].strip() != "" else "Vacío"),
+                ("Agregar Puntos Críticos", fila_datos[10] if len(fila_datos) > 10 and fila_datos[10].strip() != "" else "Vacío"),
+                ("Generar Capacitación Plataforma", fila_datos[13] if len(fila_datos) > 13 and fila_datos[13].strip() != "" else "Vacío"),
+                ("Generar Documento Power BI", fila_datos[16] if len(fila_datos) > 16 and fila_datos[16].strip() != "" else "Vacío"),
+                ("Generar Capacitación Power BI", fila_datos[19] if len(fila_datos) > 19 and fila_datos[19].strip() != "" else "Vacío"),
+                ("Generar Estrategia de Riego", fila_datos[22] if len(fila_datos) > 22 and fila_datos[22].strip() != "" else "Vacío"),
+            ]
+            html_obs_table = """
+            <style>
+              .comments-table {
+                 width: 100%;
+                 border-collapse: collapse;
+                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              }
+              .comments-table td {
+                 border: 1px solid #ddd;
+                 padding: 12px;
+              }
+              .comments-table td:first-child {
+                 font-weight: bold;
+                 text-align: left;
+                 width: 50%;
+              }
+              .comments-table td:last-child {
+                 text-align: left;
+                 width: 50%;
+              }
+            </style>
+            <table class="comments-table">
+            """
+            for process, obs in process_obs:
+                html_obs_table += f"<tr><td>{process}</td><td>{obs}</td></tr>"
+            html_obs_table += "</table>"
+            st.components.v1.html(html_obs_table, height=220)
 
         # Sección: Tabla de Comentarios por Sector
         st.subheader("Comentarios por Sector")

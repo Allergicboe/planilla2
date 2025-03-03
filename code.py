@@ -385,8 +385,8 @@ def main():
             html_obs_table += "</table>"
             st.components.v1.html(html_obs_table, height=220)
 
-        # Sección: Tabla de Comentarios por Sector
-        st.subheader("Comentarios por Sector")
+        # Sección: Comentarios Generales
+        st.subheader("Comentarios Generales")
         comentarios_data = {}
         sectores_encontrados = []
         for row_index in st.session_state.rows:

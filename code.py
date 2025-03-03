@@ -348,7 +348,11 @@ def main():
 
             # Sección: Observaciones de Procesos
             st.subheader("Observaciones")
-            if len(st.session_state.selected_sectores) != 1:
+            # Recalcular los sectores asignados a la cuenta
+            sectores_para_cuenta = [row[1] for row in data[1:] if row[0] == selected_cuenta]
+            unique_sectores_cuenta = sorted(set(sectores_para_cuenta))
+            # Se muestran las observaciones si se seleccionó un único sector o si la cuenta tiene asignado solo un sector
+            if (len(st.session_state.selected_sectores) != 1) and (len(unique_sectores_cuenta) != 1):
                 st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
             else:
                 fila_datos = data[st.session_state.rows[0] - 1]

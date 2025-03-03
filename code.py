@@ -344,9 +344,9 @@ def main():
         st.components.v1.html(html_table, height=estado_height)
 
         # Sección: Observaciones de Procesos
-        st.subheader("Observaciones de Procesos")
         # Se muestra solo si se ha seleccionado un único sector de riego
         if len(st.session_state.selected_sectores) == 1:
+        st.subheader("Observaciones de Procesos")
             fila_datos = data[st.session_state.rows[0] - 1]
             process_obs = [
                 ("Ingreso a Planilla Clientes Nuevos", fila_datos[4] if len(fila_datos) > 4 and fila_datos[4].strip() != "" else "Vacío"),

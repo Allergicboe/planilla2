@@ -86,12 +86,9 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
         date_col = step["date_col"]
         obs_col = step.get("obs_col")
         for row in rows:
-            # Actualizar valor del proceso
             cells_to_update.append(Cell(row, step_col, update_value))
-            # Actualizar observación del proceso (si corresponde)
             if obs_col is not None:
                 cells_to_update.append(Cell(row, obs_col, step["obs_value"]))
-            # Actualizar fecha si hay avance
             if update_value in ['Sí', 'Programado', 'Sí (DropControl)', 'Sí (CDTEC IF)']:
                 cells_to_update.append(Cell(row, date_col, now))
             else:
@@ -110,7 +107,6 @@ def update_steps(rows, steps_updates, consultoria_value, comentarios_value):
     try:
         sheet.update_cells(cells_to_update, value_input_option='USER_ENTERED')
         st.success("✅ Cambios guardados.")
-        # Invalidar caché para forzar la recarga de datos
         st.cache_data.clear()
         return True
     except Exception as e:
@@ -269,18 +265,14 @@ def main():
         
         with tab1:
             st.header("Procesos")
-            # Construir encabezado de la tabla: Cuenta, Sector, Consultoría, cada proceso y Última Actualización
             headers = ["Cuenta", "Sector", "Consultoría"] + [p["name"] for p in processes] + ["Última Actualización"]
             table_data = []
             for row_index in st.session_state.rows:
-                row = data[row_index - 1]  # Ajuste de índice
-                # Extraer valores de cuenta, sector y consultoría
+                row = data[row_index - 1]
                 row_data = [row[0], row[1], row[2]]
-                # Extraer el valor de cada proceso (usando la columna definida en processes)
                 for proc in processes:
                     cell_val = row[proc["step_col"] - 1] if len(row) >= proc["step_col"] else ""
                     row_data.append(cell_val)
-                # Última Actualización (columna 32, índice 31)
                 row_data.append(row[31] if len(row) > 31 else "")
                 table_data.append(row_data)
             
@@ -294,7 +286,6 @@ def main():
             
             df = pd.DataFrame(table_data, columns=headers)
             
-            # Construcción de la tabla HTML con estilo
             html_table = f"""
             <style>
             .status-table {{
@@ -343,10 +334,8 @@ def main():
             for _, row in df.iterrows():
                 html_table += "<tr>"
                 for i, cell in enumerate(row):
-                    # Las dos primeras columnas se muestran sin formato especial
                     if i <= 1:
                         html_table += f"<td>{cell}</td>"
-                    # Última columna (fecha)
                     elif i == len(row) - 1:
                         html_table += f'<td><div class="date-cell">{cell}</div></td>'
                     else:
@@ -367,21 +356,16 @@ def main():
             """
             st.components.v1.html(html_table, height=estado_height)
 
-            # Sección de Observaciones
             st.subheader("Observaciones")
-            # Recalcular sectores asignados a la cuenta
             sectores_para_cuenta = [row[1] for row in data[1:] if row[0] == selected_cuenta]
             unique_sectores_cuenta = sorted(set(sectores_para_cuenta))
-            # Se muestran las observaciones si se selecciona un único sector o la cuenta tiene asignado solo uno
             if (len(st.session_state.selected_sectores) != 1) and (len(unique_sectores_cuenta) != 1):
                 st.info("⚠️ Solo se mostrarán las observaciones cuando se seleccione un único sector.")
             else:
                 fila_datos = data[st.session_state.rows[0] - 1]
-                # Comentarios generales (columna 31, índice 30)
                 general_comment = fila_datos[30] if len(fila_datos) > 30 and fila_datos[30].strip() != "" else "Vacío"
                 with st.expander("Comentarios Generales", expanded=True):
                     st.write(general_comment)
-                
                 for proc in processes:
                     obs_index = proc["obs_col"] - 1
                     obs_value = fila_datos[obs_index] if len(fila_datos) > obs_index and fila_datos[obs_index].strip() != "" else "Vacío"
@@ -389,41 +373,47 @@ def main():
                         st.write(obs_value)
         
         with tab2:
-            # Incluir la sección de actualización dentro de un formulario
             with st.form("update_form"):
                 st.header("Actualizar Registro")
                 fila_index = st.session_state.rows[0] - 1
                 fila_datos = data[fila_index]
                 
-                # Campo de Consultoría (columna 3)
-                consultoria_default = fila_datos[2] if len(fila_datos) >= 3 else ""
-                display_consultoria = consultoria_default.strip() if consultoria_default and consultoria_default.strip() != "" else "Vacío"
-                consultoria_options = ["Sí", "No"]
-                if display_consultoria not in consultoria_options:
-                    consultoria_options = [display_consultoria] + consultoria_options
-                try:
-                    consultoria_index = consultoria_options.index(display_consultoria)
-                except ValueError:
-                    consultoria_index = 0
-                consultoria_value = st.selectbox("Consultoría", options=consultoria_options, index=consultoria_index, key="consultoria_update")
+                # Dividir el formulario en dos columnas
+                col1, col2 = st.columns(2)
                 
-                # Campos dinámicos para cada proceso
-                process_values = {}
-                process_obs_values = {}
-                for i, proc in enumerate(processes):
-                    default_val = fila_datos[proc["step_col"] - 1] if len(fila_datos) >= proc["step_col"] else ""
-                    display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
-                    options_for_select = proc["options"].copy()
-                    if display_val not in options_for_select:
-                        options_for_select = [display_val] + options_for_select
-                    default_index = options_for_select.index(display_val)
-                    process_values[proc["name"]] = st.selectbox(proc["name"], options=options_for_select, index=default_index, key=f"process_{i}_update")
+                with col1:
+                    # Campo de Consultoría
+                    consultoria_default = fila_datos[2] if len(fila_datos) >= 3 else ""
+                    display_consultoria = consultoria_default.strip() if consultoria_default and consultoria_default.strip() != "" else "Vacío"
+                    consultoria_options = ["Sí", "No"]
+                    if display_consultoria not in consultoria_options:
+                        consultoria_options = [display_consultoria] + consultoria_options
+                    try:
+                        consultoria_index = consultoria_options.index(display_consultoria)
+                    except ValueError:
+                        consultoria_index = 0
+                    consultoria_value = st.selectbox("Consultoría", options=consultoria_options, index=consultoria_index, key="consultoria_update")
                     
-                    default_obs = fila_datos[proc["obs_col"] - 1] if len(fila_datos) >= proc["obs_col"] else ""
-                    process_obs_values[proc["name"]] = st.text_area(f"Observaciones - {proc['name']}", value=default_obs, height=68, key=f"obs_{i}_update")
+                    # Campos dinámicos para los valores de cada proceso
+                    process_values = {}
+                    for i, proc in enumerate(processes):
+                        default_val = fila_datos[proc["step_col"] - 1] if len(fila_datos) >= proc["step_col"] else ""
+                        display_val = default_val.strip() if default_val and default_val.strip() != "" else "Vacío"
+                        options_for_select = proc["options"].copy()
+                        if display_val not in options_for_select:
+                            options_for_select = [display_val] + options_for_select
+                        default_index = options_for_select.index(display_val)
+                        process_values[proc["name"]] = st.selectbox(proc["name"], options=options_for_select, index=default_index, key=f"process_{i}_update")
                 
-                # Comentarios generales
-                comentarios_generales = st.text_area("Comentarios generales", value="", height=68, key="comentarios_generales_update")
+                with col2:
+                    # Campos dinámicos para las observaciones de cada proceso
+                    process_obs_values = {}
+                    for i, proc in enumerate(processes):
+                        default_obs = fila_datos[proc["obs_col"] - 1] if len(fila_datos) >= proc["obs_col"] else ""
+                        process_obs_values[proc["name"]] = st.text_area(f"Observaciones - {proc['name']}", value=default_obs, height=68, key=f"obs_{i}_update")
+                    
+                    # Comentarios generales
+                    comentarios_generales = st.text_area("Comentarios generales", value="", height=68, key="comentarios_generales_update")
                 
                 submitted = st.form_submit_button("Guardar Cambios")
                 if submitted:
